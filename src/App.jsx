@@ -314,9 +314,9 @@ export default function App() {
 
       {/* Main content */}
       <main className="max-w-7xl mx-auto px-4 mt-4 page-enter">
-        <div className="flex gap-6">
-          {/* Left Column - Static */}
-          <div className="sticky top-20 self-start w-80 max-h-[calc(100vh-100px)] overflow-y-auto">
+        <div className="flex flex-col md:flex-row gap-6">
+          {/* Left Column - Static on larger screens, stacked on mobile */}
+          <div className="w-full md:w-80 md:sticky md:top-20 md:self-start md:max-h-[calc(100vh-100px)] md:overflow-y-auto">
             <div className="text-center">
               <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
                 Welcome back, <span className="font-medium">{firebaseUser.email.split('@')[0]}</span> 💚
@@ -331,7 +331,7 @@ export default function App() {
           </div>
 
           {/* Right Column - Scrollable */}
-          <div className="flex-1 overflow-y-auto space-y-5">
+          <div className="flex-1 space-y-5">
 
           {/* Girl Math */}
           {/* <GirlMath completedHabits={completedHabits} goals={goals} /> */}
