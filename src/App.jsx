@@ -5,6 +5,7 @@ import { saveUserData, loadUserData, createUserProfile } from './utils/database.
 import Login from './components/Login.jsx';
 import CompanionChoice from './components/CompanionChoice.jsx';
 import Companion from './components/Companion.jsx';
+import MoodTracker from './components/MoodTracker.jsx';
 import Habits from './components/Habits.jsx';
 import Goals from './components/Goals.jsx';
 import GirlMath from './components/GirlMath.jsx';
@@ -24,6 +25,7 @@ export default function App() {
   const [customHabits, setCustomHabits] = useState([]);
   const [goals, setGoals] = useState([]);
   const [totalPoints, setTotalPoints] = useState(0);
+  const [moodEntries, setMoodEntries] = useState([]);
 
   // ── Listen for auth state changes (persists across refreshes) ──
   useEffect(() => {
@@ -41,6 +43,7 @@ export default function App() {
           setGoals(data.goals || []);
           setTotalPoints(data.totalPoints || 0);
           setTheme(data.theme || 'warm');
+          setMoodEntries(data.moodEntries || []);
         } else {
           // First time — create profile
           await createUserProfile(user.uid, user.email);
@@ -56,6 +59,7 @@ export default function App() {
         setGoals([]);
         setTotalPoints(0);
         setTheme('warm');
+        setMoodEntries([]);
       }
       setAuthLoading(false);
     });
@@ -75,12 +79,13 @@ export default function App() {
         goals,
         totalPoints,
         theme,
+        moodEntries,
         email: firebaseUser.email,
       });
     }, 1000); // Debounce: save 1s after last change
 
     return () => clearTimeout(timeout);
-  }, [companionType, completedHabits, customHabits, goals, totalPoints, theme, firebaseUser, authLoading, dataLoading]);
+  }, [companionType, completedHabits, customHabits, goals, totalPoints, theme, moodEntries, firebaseUser, authLoading, dataLoading]);
 
   // ── Apply theme ──
   useEffect(() => {
@@ -125,12 +130,36 @@ export default function App() {
     setTotalPoints((p) => p + 5);
   };
 
+  const handleMoodSelect = (moodId) => {
+    const today = new Date().toISOString().split('T')[0]; // Format: YYYY-MM-DD
+
+    setMoodEntries((prev) => {
+      // Check if there's already an entry for today
+      const existingIndex = prev.findIndex(entry => entry.date === today);
+
+      if (existingIndex !== -1) {
+        // Update existing entry
+        const updated = [...prev];
+        updated[existingIndex] = { date: today, mood: moodId, timestamp: Date.now() };
+        return updated;
+      } else {
+        // Add new entry
+        return [...prev, { date: today, mood: moodId, timestamp: Date.now() }];
+      }
+    });
+  };
+
   const handleLogout = async () => {
     await signOut(auth);
   };
 
   // ── Companion stage ──
   const companionStage = totalPoints >= 50 ? 'adult' : totalPoints >= 25 ? 'young' : totalPoints >= 10 ? 'teen' : 'baby';
+
+  // ── Get today's mood ──
+  const today = new Date().toISOString().split('T')[0];
+  const todayMoodEntry = moodEntries.find(entry => entry.date === today);
+  const todayMood = todayMoodEntry ? todayMoodEntry.mood : null;
 
   // ── Loading screen ──
   if (authLoading || dataLoading) {
@@ -199,6 +228,9 @@ export default function App() {
 
             {/* Companion */}
             <Companion type={companionType} totalPoints={totalPoints} />
+
+            {/* Mood Tracker */}
+            <MoodTracker onMoodSelect={handleMoodSelect} todayMood={todayMood} />
           </div>
 
           {/* Right Column - Scrollable */}

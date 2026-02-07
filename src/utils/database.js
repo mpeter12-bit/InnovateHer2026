@@ -53,6 +53,7 @@ export async function createUserProfile(uid, email) {
         goals: [],
         totalPoints: 0,
         theme: 'warm',
+        moodEntries: [],
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
       });
