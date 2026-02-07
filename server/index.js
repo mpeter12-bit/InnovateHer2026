@@ -1,14 +1,25 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-dotenv.config();
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Load .env from project root (parent directory)
+dotenv.config({ path: path.resolve(__dirname, '../.env') });
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 
 app.use(cors());
 app.use(express.json());
+
+// ── Rate limiting ──
+const requestTimestamps = new Map();
+const RATE_LIMIT_WINDOW = 60 * 1000; // 1 minute
+const MAX_REQUESTS_PER_WINDOW = 5; // Max 5 requests per minute
 
 // ── Fallback messages (used when Gemini API fails or key is missing) ──
 const FALLBACK_MESSAGES = [
@@ -30,41 +41,71 @@ const POST_ADULT_FALLBACKS = [
   "Your companion sparkles a little more with every kind thing you do for yourself.",
 ];
 
-// ── Gemini API call ──
-async function callGemini(prompt) {
+// ── Gemini API call with retry logic ──
+async function callGemini(prompt, retries = 2) {
   const apiKey = process.env.GEMINI_API_KEY;
+
+  // TEMPORARY: Disable Gemini API and use fallbacks only
+  // Comment out this line once you have a working API key
+  //return null;
+
+  console.log('🔍 callGemini called');
+  console.log('📝 API Key present:', apiKey ? `Yes (${apiKey.substring(0, 10)}...)` : 'No');
+
   if (!apiKey || apiKey === 'your_gemini_api_key_here') {
+    console.log('❌ No valid API key found');
     return null; // Will trigger fallback
   }
 
-  try {
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: {
-            temperature: 0.8,
-            maxOutputTokens: 200,
-          },
-        }),
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      const response = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: prompt }] }],
+            generationConfig: {
+              temperature: 0.8,
+              maxOutputTokens: 200,
+            },
+          }),
+        }
+      );
+
+      console.log('📡 API Response Status:', response.status);
+
+      if (response.status === 429) {
+        console.warn(`⏳ Rate limit hit (attempt ${attempt + 1}/${retries + 1})`);
+        if (attempt < retries) {
+          // Exponential backoff: wait 2^attempt seconds
+          await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempt) * 1000));
+          continue;
+        }
+        return null; // Out of retries
       }
-    );
 
-    if (!response.ok) {
-      console.error('Gemini API error:', response.status);
-      return null;
+      if (!response.ok) {
+        console.error('❌ Gemini API error:', response.status);
+        const errorText = await response.text();
+        console.error('Error details:', errorText);
+        return null;
+      }
+
+      const data = await response.json();
+      console.log('📦 API Response:', JSON.stringify(data, null, 2));
+      const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+      console.log('✅ Generated text:', text ? text.substring(0, 50) + '...' : 'null');
+      return text?.trim() || null;
+    } catch (err) {
+      console.error('❌ Gemini call failed:', err.message);
+      console.error('Full error:', err);
+      if (attempt === retries) return null;
+      await new Promise(resolve => setTimeout(resolve, 1000));
     }
-
-    const data = await response.json();
-    const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-    return text?.trim() || null;
-  } catch (err) {
-    console.error('Gemini call failed:', err.message);
-    return null;
   }
+  return null;
 }
 
 // ── Build prompt template ──
@@ -92,20 +133,46 @@ Write a SHORT reflection (2-3 sentences max) that is:
 Respond with ONLY the reflection text, no quotes or labels.`;
 }
 
-// ── /api/reflect endpoint ──
+// ── /api/reflect endpoint with rate limiting & caching ──
 app.post('/api/reflect', async (req, res) => {
   try {
     const { completedHabits, activityLevel, goalsCompleted, companionType, companionStage } = req.body;
+    const clientIp = req.ip || req.connection.remoteAddress || 'unknown';
 
+    // Rate limiting check
+    const now = Date.now();
+    if (!requestTimestamps.has(clientIp)) {
+      requestTimestamps.set(clientIp, []);
+    }
+
+    const timestamps = requestTimestamps.get(clientIp);
+    const recentRequests = timestamps.filter(t => now - t < RATE_LIMIT_WINDOW);
+
+    if (recentRequests.length >= MAX_REQUESTS_PER_WINDOW) {
+      console.warn(`Rate limit exceeded for ${clientIp}`);
+      // Return cached or fallback instead of error
+      const pool = companionStage === 'adult'
+        ? [...FALLBACK_MESSAGES, ...POST_ADULT_FALLBACKS]
+        : FALLBACK_MESSAGES;
+      const fallback = pool[Math.floor(Math.random() * pool.length)];
+      return res.json({ reflection: fallback, source: 'rate-limited' });
+    }
+
+    recentRequests.push(now);
+    requestTimestamps.set(clientIp, recentRequests);
+
+    // Generate fresh response every time (caching disabled for variety)
     const prompt = buildPrompt({ completedHabits, activityLevel, goalsCompleted, companionType, companionStage });
-
+    console.log('🤖 Calling Gemini API for fresh response...');
     const geminiResponse = await callGemini(prompt);
 
     if (geminiResponse) {
+      console.log('✨ Fresh Gemini response received');
       return res.json({ reflection: geminiResponse, source: 'gemini' });
     }
 
     // Fallback
+    console.log('⚠️ Using fallback message (Gemini returned null)');
     const pool = companionStage === 'adult'
       ? [...FALLBACK_MESSAGES, ...POST_ADULT_FALLBACKS]
       : FALLBACK_MESSAGES;
