@@ -5,10 +5,23 @@ export default function Reflection({ completedHabits, goals, companionType, comp
   const [reflection, setReflection] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [lastFetchTime, setLastFetchTime] = useState(0);
+
+  const COOLDOWN_SECONDS = 10; // 10 second cooldown between requests
 
   const fetchReflection = async () => {
+    const now = Date.now();
+    const timeSinceLastFetch = (now - lastFetchTime) / 1000;
+
+    if (timeSinceLastFetch < COOLDOWN_SECONDS && lastFetchTime > 0) {
+      setError(`Please wait ${Math.ceil(COOLDOWN_SECONDS - timeSinceLastFetch)} seconds before requesting another reflection.`);
+      setTimeout(() => setError(null), 3000);
+      return;
+    }
+
     setLoading(true);
     setError(null);
+    setLastFetchTime(now);
 
     try {
       const res = await fetch('/api/reflect', {
@@ -62,6 +75,20 @@ export default function Reflection({ completedHabits, goals, companionType, comp
       <p className="text-xs mb-4" style={{ color: 'var(--text-muted)' }}>
         A kind word, just for you. No judgment, ever.
       </p>
+
+      {error && (
+        <div
+          className="p-3 rounded-xl mb-4 animate-bloom-in"
+          style={{
+            background: 'rgba(244, 114, 182, 0.1)',
+            border: '1px solid rgba(244, 114, 182, 0.3)',
+          }}
+        >
+          <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+            {error}
+          </p>
+        </div>
+      )}
 
       {reflection && (
         <div
