@@ -75,7 +75,7 @@ export default function Reflection({ completedHabits, goals, companionType, comp
             "{reflection}"
           </p>
           <p className="text-[10px] mt-3" style={{ color: 'var(--text-muted)' }}>
-            — Your HabitBloom companion 🌸
+            — Your SAGE companion 🌸
           </p>
         </div>
       )}

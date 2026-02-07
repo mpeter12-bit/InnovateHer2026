@@ -21,9 +21,25 @@ export default function App() {
   // ── App State ──
   const [companionType, setCompanionType] = useState(null);
   const [theme, setTheme] = useState('warm');
-  const [completedHabits, setCompletedHabits] = useState([]);
-  const [customHabits, setCustomHabits] = useState([]);
-  const [goals, setGoals] = useState([]);
+
+  // --Newly Added Object Habit States
+  const [habits, setHabits] = useState({
+    daily: {
+      completed: [],
+      custom: []
+    },
+    weekly: {
+      completed: [],
+      custom: []
+    },
+    monthly: {
+      completed: [],
+      custom: []
+    },
+  })
+  /* const [completedHabits, setCompletedHabits] = useState([]);
+  const [customHabits, setCustomHabits] = useState([]); */
+  //const [goals, setGoals] = useState([]);
   const [totalPoints, setTotalPoints] = useState(0);
   const [moodEntries, setMoodEntries] = useState([]);
 
@@ -38,9 +54,11 @@ export default function App() {
         const data = await loadUserData(user.uid);
         if (data) {
           setCompanionType(data.companionType || null);
-          setCompletedHabits(data.completedHabits || []);
-          setCustomHabits(data.customHabits || []);
-          setGoals(data.goals || []);
+          setHabits(data.habits || {
+            daily: { completed: [], custom: [] },
+            weekly: { completed: [], custom: [] },
+            monthly: { completed: [], custom: [] }
+          });
           setTotalPoints(data.totalPoints || 0);
           setTheme(data.theme || 'warm');
           setMoodEntries(data.moodEntries || []);
@@ -54,9 +72,11 @@ export default function App() {
         setFirebaseUser(null);
         // Reset state
         setCompanionType(null);
-        setCompletedHabits([]);
-        setCustomHabits([]);
-        setGoals([]);
+        setHabits({
+          daily: { completed: [], custom: [] },
+          weekly: { completed: [], custom: [] },
+          monthly: { completed: [], custom: [] }
+        });
         setTotalPoints(0);
         setTheme('warm');
         setMoodEntries([]);
@@ -74,9 +94,7 @@ export default function App() {
     const timeout = setTimeout(() => {
       saveUserData(firebaseUser.uid, {
         companionType,
-        completedHabits,
-        customHabits,
-        goals,
+        habits,
         totalPoints,
         theme,
         moodEntries,
@@ -85,7 +103,7 @@ export default function App() {
     }, 1000); // Debounce: save 1s after last change
 
     return () => clearTimeout(timeout);
-  }, [companionType, completedHabits, customHabits, goals, totalPoints, theme, moodEntries, firebaseUser, authLoading, dataLoading]);
+  }, [companionType, habits, totalPoints, theme, moodEntries, firebaseUser, authLoading, dataLoading]);
 
   // ── Apply theme ──
   useEffect(() => {
@@ -101,7 +119,7 @@ export default function App() {
     setCompanionType(type);
   };
 
-  const toggleHabit = useCallback((habitId) => {
+  /* const toggleHabit = useCallback((habitId) => {
     setCompletedHabits((prev) => {
       const allHabits = [...DEFAULT_HABITS, ...customHabits];
       const habit = allHabits.find((h) => h.id === habitId);
@@ -117,9 +135,76 @@ export default function App() {
 
   const addCustomHabit = (habit) => {
     setCustomHabits((prev) => [...prev, habit]);
+  }; */
+
+  // Toggle a daily habit
+  const toggleDailyHabit = (habitId) => {
+    setHabits(prev => ({
+      ...prev,
+      daily: {
+        ...prev.daily,
+        completed: prev.daily.completed.includes(habitId)
+          ? prev.daily.completed.filter(id => id !== habitId)
+          : [...prev.daily.completed, habitId]
+      }
+    }));
   };
 
-  const addGoal = (goal) => {
+  const addDailyCustomHabit = (habit) => {
+    setHabits(prev => ({
+      ...prev,
+      daily: {
+        ...prev.daily,
+        custom: [...prev.daily.custom, habit]
+      }
+    }))
+  };
+
+  const toggleWeeklyHabit = (habitId) => {
+    setHabits(prev => ({
+      ...prev,
+      weekly: {
+        ...prev.weekly,
+        completed: prev.weekly.completed.includes(habitId)
+          ? prev.weekly.completed.filter(id => id !== habitId)
+          : [...prev.weekly.completed, habitId]
+      }
+    }));
+  };
+
+  const addWeeklyCustomHabit = (habit) => {
+    setHabits(prev => ({
+      ...prev,
+      weekly: {
+        ...prev.weekly,
+        custom: [...prev.weekly.custom, habit]
+      }
+    }))
+  };
+
+  const toggleMonthlyHabit = (habitId) => {
+    setHabits(prev => ({
+      ...prev,
+      monthly: {
+        ...prev.monthly,
+        completed: prev.monthly.completed.includes(habitId)
+          ? prev.monthly.completed.filter(id => id !== habitId)
+          : [...prev.monthly.completed, habitId]
+      }
+    }));
+  };
+
+  const addMonthlyCustomHabit = (habit) => {
+    setHabits(prev => ({
+      ...prev,
+      monthly: {
+        ...prev.monthly,
+        custom: [...prev.monthly.custom, habit]
+      }
+    }))
+  };
+
+  /* const addGoal = (goal) => {
     setGoals((prev) => [...prev, goal]);
   };
 
@@ -128,7 +213,7 @@ export default function App() {
       prev.map((g) => (g.id === goalId ? { ...g, completed: true } : g))
     );
     setTotalPoints((p) => p + 5);
-  };
+  }; */
 
   const handleMoodSelect = (moodId) => {
     const today = new Date().toISOString().split('T')[0]; // Format: YYYY-MM-DD
@@ -160,6 +245,13 @@ export default function App() {
   const today = new Date().toISOString().split('T')[0];
   const todayMoodEntry = moodEntries.find(entry => entry.date === today);
   const todayMood = todayMoodEntry ? todayMoodEntry.mood : null;
+  
+  // ── Combine all completed habits for Reflection ──
+  const allCompletedHabits = [
+    ...habits.daily.completed,
+    ...habits.weekly.completed,
+    ...habits.monthly.completed
+  ];
 
   // ── Loading screen ──
   if (authLoading || dataLoading) {
@@ -237,27 +329,46 @@ export default function App() {
           <div className="flex-1 overflow-y-auto space-y-5">
 
           {/* Girl Math */}
-          <GirlMath completedHabits={completedHabits} goals={goals} />
+          {/* <GirlMath completedHabits={completedHabits} goals={goals} /> */}
 
-          {/* Habits */}
+          {/* Daily Goals */}
           <Habits
-            completedHabits={completedHabits}
-            onToggle={toggleHabit}
-            customHabits={customHabits}
-            onAddCustom={addCustomHabit}
+            completedHabits={habits.daily.completed}
+            onToggle={toggleDailyHabit}
+            customHabits={habits.daily.custom}
+            onAddCustom={addDailyCustomHabit}
+            title="Daily Goals"
           />
 
-          {/* Goals */}
+          {/* Weekly Goals */}
+          <Habits
+            completedHabits={habits.weekly.completed}
+            onToggle={toggleWeeklyHabit}
+            customHabits={habits.weekly.custom}
+            onAddCustom={addWeeklyCustomHabit}
+            title="Weekly Goals"
+          />
+
+          {/* Monthly Goals */}
+          <Habits
+            completedHabits={habits.monthly.completed}
+            onToggle={toggleMonthlyHabit}
+            customHabits={habits.monthly.custom}
+            onAddCustom={addMonthlyCustomHabit}
+            title="Monthly Goals"
+          />
+
+          {/* Goals
           <Goals
             goals={goals}
             onAddGoal={addGoal}
             onCompleteGoal={completeGoal}
-          />
+          /> */}
 
           {/* Reflection */}
           <Reflection
-            completedHabits={completedHabits}
-            goals={goals}
+            completedHabits={allCompletedHabits}
+            goals={[]}
             companionType={companionType}
             companionStage={companionStage}
           />
