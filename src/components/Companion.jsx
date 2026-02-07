@@ -299,7 +299,7 @@ export default function Companion({ type, totalPoints }) {
 
   return (
     <div
-      className="rounded-3xl p-6 relative overflow-hidden"
+      className="rounded-3xl p-3 relative overflow-hidden"
       style={{
         background: 'var(--bg-card)',
         boxShadow: 'var(--shadow-soft)',

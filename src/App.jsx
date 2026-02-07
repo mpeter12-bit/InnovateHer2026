@@ -344,7 +344,7 @@ export default function App() {
             onAddCustom={addDailyCustomHabit}
             title="Daily Goals"
             
-            onDeleteCustom={handleDeleteHabit}
+            //onDeleteCustom={handleDeleteHabit}
           />
 
           {/* Weekly Goals */}
