@@ -183,43 +183,54 @@ export default function App() {
         </div>
       </header>
 
+      
+
+
       {/* Main content */}
-      <main className="max-w-lg mx-auto px-4 space-y-5 mt-4 page-enter">
-        {/* Welcome */}
-        <div className="text-center">
-          <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-            Welcome back, <span className="font-medium">{firebaseUser.email.split('@')[0]}</span> 💚
-          </p>
+      <main className="max-w-7xl mx-auto px-4 mt-4 page-enter">
+        <div className="flex gap-6">
+          {/* Left Column - Static */}
+          <div className="sticky top-20 self-start w-80 max-h-[calc(100vh-100px)] overflow-y-auto">
+            <div className="text-center">
+              <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+                Welcome back, <span className="font-medium">{firebaseUser.email.split('@')[0]}</span> 💚
+              </p>
+            </div>
+
+            {/* Companion */}
+            <Companion type={companionType} totalPoints={totalPoints} />
+          </div>
+
+          {/* Right Column - Scrollable */}
+          <div className="flex-1 overflow-y-auto space-y-5">
+
+          {/* Girl Math */}
+          <GirlMath completedHabits={completedHabits} goals={goals} />
+
+          {/* Habits */}
+          <Habits
+            completedHabits={completedHabits}
+            onToggle={toggleHabit}
+            customHabits={customHabits}
+            onAddCustom={addCustomHabit}
+          />
+
+          {/* Goals */}
+          <Goals
+            goals={goals}
+            onAddGoal={addGoal}
+            onCompleteGoal={completeGoal}
+          />
+
+          {/* Reflection */}
+          <Reflection
+            completedHabits={completedHabits}
+            goals={goals}
+            companionType={companionType}
+            companionStage={companionStage}
+          />
+          </div>
         </div>
-
-        {/* Companion */}
-        <Companion type={companionType} totalPoints={totalPoints} />
-
-        {/* Girl Math */}
-        <GirlMath completedHabits={completedHabits} goals={goals} />
-
-        {/* Habits */}
-        <Habits
-          completedHabits={completedHabits}
-          onToggle={toggleHabit}
-          customHabits={customHabits}
-          onAddCustom={addCustomHabit}
-        />
-
-        {/* Goals */}
-        <Goals
-          goals={goals}
-          onAddGoal={addGoal}
-          onCompleteGoal={completeGoal}
-        />
-
-        {/* Reflection */}
-        <Reflection
-          completedHabits={completedHabits}
-          goals={goals}
-          companionType={companionType}
-          companionStage={companionStage}
-        />
 
         {/* Footer */}
         <footer className="text-center pt-4 pb-2">
