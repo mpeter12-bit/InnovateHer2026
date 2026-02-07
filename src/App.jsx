@@ -158,7 +158,7 @@ export default function App() {
           <div className="flex items-center gap-2">
             <span className="text-xl animate-sway inline-block">🌸</span>
             <h1 className="font-display text-lg font-semibold" style={{ color: 'var(--text-primary)' }}>
-              HabitBloom
+              SAGE: Self-care and Goal Engagement
             </h1>
           </div>
           <div className="flex items-center gap-2">
@@ -235,7 +235,7 @@ export default function App() {
         {/* Footer */}
         <footer className="text-center pt-4 pb-2">
           <p className="text-[11px]" style={{ color: 'var(--text-muted)' }}>
-            HabitBloom · Trauma-informed wellness · No streaks, no shame 💚
+            SAGE · Trauma-informed wellness · No streaks, no shame 💚
           </p>
         </footer>
       </main>
