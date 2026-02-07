@@ -205,6 +205,11 @@ export default function App() {
   };
 
   /* const addGoal = (goal) => {
+  const handleDeleteHabit = (habitId) => {
+    setCustomHabits((prev) => prev.filter((h) => h.id !== habitId));
+  };
+
+  const addGoal = (goal) => {
     setGoals((prev) => [...prev, goal]);
   };
 
@@ -338,6 +343,8 @@ export default function App() {
             customHabits={habits.daily.custom}
             onAddCustom={addDailyCustomHabit}
             title="Daily Goals"
+            
+            onDeleteCustom={handleDeleteHabit}
           />
 
           {/* Weekly Goals */}
