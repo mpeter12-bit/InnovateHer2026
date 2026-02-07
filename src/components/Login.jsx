@@ -51,10 +51,11 @@ export default function Login({ onLogin }) {
         <div className="text-center mb-10">
           <div className="text-6xl mb-4 animate-float">🌸</div>
           <h1 className="font-display text-4xl font-semibold tracking-tight" style={{ color: 'var(--text-primary)' }}>
-            HabitBloom
+            SAGE
           </h1>
           <p className="mt-2 text-sm font-body" style={{ color: 'var(--text-secondary)' }}>
-            Gentle growth, one small step at a time
+            Gentle growth, one small step at a time<br />
+            Focus on Progress, not Perfection. 🌱
           </p>
         </div>
 
