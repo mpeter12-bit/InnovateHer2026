@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { DEFAULT_HABITS } from '../utils/helpers.js';
 
-export default function Habits({ completedHabits, onToggle, customHabits, onAddCustom }) {
+export default function Habits({ completedHabits, onToggle, customHabits, onAddCustom, title }) {
   const [newHabit, setNewHabit] = useState('');
   const [showAdd, setShowAdd] = useState(false);
 
-  const allHabits = [...DEFAULT_HABITS, ...customHabits];
+  //const allHabits = [...DEFAULT_HABITS, ...customHabits];
+  const allHabits = [...customHabits];
 
   const handleAdd = () => {
     const label = newHabit.trim();
@@ -31,7 +32,7 @@ export default function Habits({ completedHabits, onToggle, customHabits, onAddC
     >
       <div className="flex items-center justify-between mb-4">
         <h2 className="font-display text-xl font-medium" style={{ color: 'var(--text-primary)' }}>
-          Today's Care ☁️
+          {title} ☁️
         </h2>
         <span className="text-xs px-2.5 py-1 rounded-full font-medium" style={{ background: 'var(--bg-secondary)', color: 'var(--text-secondary)' }}>
           {completedHabits.length}/{allHabits.length}
