@@ -65,8 +65,6 @@ const [totalPoints, setTotalPoints] = useState(0);
         const data = await loadUserData(user.uid);
         if (data) {
           setCompanionType(data.companionType || null);
-          setCompanionName(data.companionName || '');
-          
           const loadedHabits = data.habits || {
             daily: { completed: [], custom: [], counts: {} },
             weekly: { completed: [], custom: [], counts: {} },
