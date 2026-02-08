@@ -18,6 +18,7 @@ SAGE is a self-care habit tracker where completing daily goals nurtures a virtua
 - Choose a **plant** or **animal** companion at signup
 - Companion evolves through 4 visual SVG stages: **Baby → Teen → Young → Adult**
 - Growth is driven by habit completion points
+- A **progress bar** under your companion shows how close you are to the next growth stage — it gains 1 point per completed goal and never decreases or resets
 - **Post-adult growth never stops** — plants bloom extra flowers, animals gain accessories (crown, bow tie, sparkles) — reinforcing that self-care is lifelong, not a destination
 - **Name your companion** by clicking the name area — saved to your profile
 
