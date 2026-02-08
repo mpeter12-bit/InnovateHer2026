@@ -6,6 +6,7 @@ import Login from './components/Login.jsx';
 import CompanionChoice from './components/CompanionChoice.jsx';
 import Companion from './components/Companion.jsx';
 import MoodTracker from './components/MoodTracker.jsx';
+import MoodCalendar from './components/MoodCalendar.jsx';
 import Habits from './components/Habits.jsx';
 import GirlMath from './components/GirlMath.jsx';
 import Reflection from './components/Reflection.jsx';
@@ -495,6 +496,8 @@ const [totalPoints, setTotalPoints] = useState(0);
           {/* Right Column - Scrollable */}
           <div className="flex-1 space-y-5">
 
+          {/* Mood Calendar */}
+          <MoodCalendar moodEntries={moodEntries} />
 
           {/* Daily Goals */}
           <Habits
