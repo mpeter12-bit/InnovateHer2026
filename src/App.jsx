@@ -44,6 +44,11 @@ export default function App() {
   /* const [completedHabits, setCompletedHabits] = useState([]);
   const [customHabits, setCustomHabits] = useState([]); */
 const [totalPoints, setTotalPoints] = useState(0);
+  const getLocalDate = () => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  };
+  const [lastDailyReset, setLastDailyReset] = useState(getLocalDate());
   const [moodEntries, setMoodEntries] = useState([]);
   const [rewardPopup, setRewardPopup] = useState(null);
   const prevDailyCountRef = useRef(0);
@@ -61,11 +66,26 @@ const [totalPoints, setTotalPoints] = useState(0);
         if (data) {
           setCompanionType(data.companionType || null);
           setCompanionName(data.companionName || '');
-          setHabits(data.habits || {
+          
+          const loadedHabits = data.habits || {
             daily: { completed: [], custom: [], counts: {} },
             weekly: { completed: [], custom: [], counts: {} },
             monthly: { completed: [], custom: [], counts: {} }
-          });
+          };
+
+          // Reset daily progress if the date has changed
+          const today = getLocalDate();
+          const lastDailyReset = data.lastDailyReset || '';
+          if (lastDailyReset !== today) {
+            loadedHabits.daily = {
+              ...loadedHabits.daily,
+              completed: [],
+              counts: {}
+            };
+          }
+
+          setHabits(loadedHabits);
+          setLastDailyReset(lastDailyReset !== today ? today : lastDailyReset);
           setTotalPoints(data.totalPoints || 0);
           setTheme(data.theme || 'warm');
           setMoodEntries(data.moodEntries || []);
@@ -85,6 +105,7 @@ const [totalPoints, setTotalPoints] = useState(0);
           monthly: { completed: [], custom: [], counts: {} }
         });
         setTotalPoints(0);
+        setLastDailyReset(getLocalDate());
         setTheme('warm');
         setMoodEntries([]);
       }
@@ -104,6 +125,7 @@ const [totalPoints, setTotalPoints] = useState(0);
         companionName,
         habits,
         totalPoints,
+        lastDailyReset,
         theme,
         moodEntries,
         email: firebaseUser.email,
@@ -111,7 +133,7 @@ const [totalPoints, setTotalPoints] = useState(0);
     }, 1000); // Debounce: save 1s after last change
 
     return () => clearTimeout(timeout);
-  }, [companionType, companionName, habits, totalPoints, theme, moodEntries, firebaseUser, authLoading, dataLoading]);
+  }, [companionType, companionName, habits, totalPoints, lastDailyReset, theme, moodEntries, firebaseUser, authLoading, dataLoading]);
 
   // ── Apply theme ──
   useEffect(() => {
@@ -482,7 +504,7 @@ const [totalPoints, setTotalPoints] = useState(0);
             titledesc="Cultivate your well-being — monthly milestones for flourishing self-care."
           />
 
-{/* Girl Math */}
+        {/* Girl Math */}
           <GirlMath completedHabits={allCompletedHabits} />
 
           {/* Reflection */}
