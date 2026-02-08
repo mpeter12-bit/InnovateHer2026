@@ -397,7 +397,7 @@ export default function App() {
           <div className="flex-1 space-y-5">
 
           {/* Girl Math */}
-          {/* <GirlMath completedHabits={completedHabits} goals={goals} /> */}
+          {/*<GirlMath completedHabits={completedHabits} goals={goals} /> */}
 
           {/* Daily Goals */}
           <Habits
@@ -423,6 +423,7 @@ export default function App() {
             habitCounts={habits.weekly.counts}
             setHabitCounts={setWeeklyCounts}
             title="Weekly Goals"
+            titledesc="Nurture your growth — weekly intentions for blossoming self-care."
           />
 
           {/* Monthly Goals */}
@@ -436,6 +437,7 @@ export default function App() {
             habitCounts={habits.monthly.counts}
             setHabitCounts={setMonthlyCounts}
             title="Monthly Goals"
+            titledesc="Cultivate your well-being — monthly milestones for flourishing self-care."
           />
 
           {/* Goals
