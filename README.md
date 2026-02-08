@@ -2,7 +2,8 @@
 
 > A trauma-informed wellness app with a companion that grows alongside you. No streaks. No shame. Just gentle progress.
 
-Built for **InnovateHer 2026**. Built in 24 hours with React, Node.js, Firebase, and the Gemini API — and fully functional even without AI.
+Built for **InnovateHer 2026**. 
+Built in 24 hours with React, Node.js, Firebase, and the Gemini API — and fully functional even without AI.
 
 ---
 
