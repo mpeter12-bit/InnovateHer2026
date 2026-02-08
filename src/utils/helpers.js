@@ -40,41 +40,52 @@ export function getStageProgress(totalPoints) {
 }
 
 // ── Girl Math messages ──
-export function generateGirlMath(completedHabits, goals) {
-  const messages = [];
+
+// Daily girl math: randomly picks one message from the pool below.
+const DAILY_GIRL_MATH = (habitCount) => [
+  `${habitCount} habit${habitCount > 1 ? 's' : ''} done. That's real progress. 🌸`,
+  `Small steps still move you forward. ✨`,
+  `Consistency today builds strength tomorrow. 🌱`,
+  `Every habit is a vote for yourself. 🗳️`,
+  `You chose yourself ${habitCount} time${habitCount > 1 ? 's' : ''} today. 💖`,
+  `${habitCount} small acts of care. That's everything. 🧘`,
+  `${habitCount} habits done = ${habitCount * 2} companion growth points. That's basically free serotonin 🧠✨`,
+  `If each habit saves you $5 in future therapy, you just saved $${habitCount * 5} today. Girl math says that's profit 💰`,
+  `${habitCount} small acts of care today × 365 days = ${habitCount * 365} moments of choosing yourself this year 🌸`,
+];
+
+export function generateGirlMath(completedHabits) {
+  if (completedHabits.length === 0) return [];
+
   const habitCount = completedHabits.length;
+  const pool = DAILY_GIRL_MATH(habitCount);
+  return [pool[Math.floor(Math.random() * pool.length)]];
+}
 
-  if (habitCount === 0) return messages;
+// ── Milestone rewards ──
+// Edit message and emoji freely for each level.
 
-  // Time-based girl math
-  const totalMinutes = habitCount * 10;
-  if (totalMinutes >= 20) {
-    messages.push(`You invested ${totalMinutes} minutes in yourself today — that's ${Math.round(totalMinutes / 60 * 100) / 100} hours of pure self-care! 💅`);
-  }
+// Weekly milestones: triggered by habits.weekly.completed count
+export const WEEKLY_MILESTONES = {
+  1:  { emoji: '☕', message: "Good job girl! Take a 15 min break!" },
+  3:  { emoji: '🧁', message: "Don't forget to fuel your brain, grab a snack or a sweet treat!" },
+  5:  { emoji: '🚶', message: "Change your environment, take a walk or see a friend!" },
+  10: { emoji: '💅', message: "Check something off your wish list, you earned it!" },
+};
 
-  // Goal-progress girl math
-  goals.forEach((goal) => {
-    if (goal.unitValue && goal.target) {
-      const progressPercent = Math.min(100, Math.round((habitCount * goal.unitValue / goal.target) * 100));
-      if (progressPercent > 0) {
-        messages.push(`Completing ${habitCount} habit${habitCount > 1 ? 's' : ''} today gets you ${progressPercent}% closer to "${goal.name}" ✨`);
-      }
-    }
-  });
+// Daily milestones: triggered by habits.daily.completed count
+export const DAILY_MILESTONES = {
+  5:  { emoji: '👏', message: "Way to go! Pat yourself on the back!" },
+  10: { emoji: '💃', message: "5 goals, wow! Dance it out!" },
+  15: { emoji: '🎨', message: "Congrats! Set aside 15 minutes for your favorite hobby!" },
+};
 
-  // Fun girl math
-  const funMessages = [
-    `${habitCount} habits done = ${habitCount * 2} companion growth points. That's basically free serotonin 🧠✨`,
-    `If each habit saves you $5 in future therapy, you just saved $${habitCount * 5} today. Girl math says that's profit 💰`,
-    `${habitCount} small acts of care today × 365 days = ${habitCount * 365} moments of choosing yourself this year 🌸`,
-    `You walked for 10 minutes? That's a free latte in wellness currency ☕`,
-    `Journaling for 5 minutes is basically giving yourself a free therapy session. The math checks out 📓`,
-  ];
+export function getWeeklyMilestoneReward(count) {
+  return WEEKLY_MILESTONES[count] || null;
+}
 
-  const randomIdx = Math.floor(Math.random() * funMessages.length);
-  messages.push(funMessages[randomIdx]);
-
-  return messages;
+export function getDailyMilestoneReward(count) {
+  return DAILY_MILESTONES[count] || null;
 }
 
 // ── Activity level from habits ──

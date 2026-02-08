@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { getActivityLevel } from '../utils/helpers.js';
 
-export default function Reflection({ completedHabits, goals, companionType, companionStage }) {
+export default function Reflection({ completedHabits, companionType, companionStage }) {
   const [reflection, setReflection] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -30,7 +30,6 @@ export default function Reflection({ completedHabits, goals, companionType, comp
         body: JSON.stringify({
           completedHabits,
           activityLevel: getActivityLevel(completedHabits.length),
-          goalsCompleted: goals.filter((g) => g.completed).map((g) => g.name),
           companionType,
           companionStage,
         }),
@@ -47,6 +46,9 @@ export default function Reflection({ completedHabits, goals, companionType, comp
         "Your companion is grateful for your presence, however it looks today.",
         "There's no wrong way to take care of yourself. You're doing it.",
         "Every gentle moment you give yourself matters more than you know.",
+        `Showing up counts, even on hard days.`,
+        `Progress doesn't have to be perfect.`,
+
       ];
       const postAdultFallbacks = [
         "Your companion is fully grown, but your habits continue to nourish your wellbeing.",

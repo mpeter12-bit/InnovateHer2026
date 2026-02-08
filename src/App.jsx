@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { auth } from './firebase.js';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { saveUserData, loadUserData, createUserProfile } from './utils/database.js';
@@ -7,10 +7,10 @@ import CompanionChoice from './components/CompanionChoice.jsx';
 import Companion from './components/Companion.jsx';
 import MoodTracker from './components/MoodTracker.jsx';
 import Habits from './components/Habits.jsx';
-import Goals from './components/Goals.jsx';
 import GirlMath from './components/GirlMath.jsx';
 import Reflection from './components/Reflection.jsx';
-import { DEFAULT_HABITS } from './utils/helpers.js';
+import RewardPopup from './components/RewardPopup.jsx';
+import { DEFAULT_HABITS, getWeeklyMilestoneReward, getDailyMilestoneReward } from './utils/helpers.js';
 
 export default function App() {
   // ── Auth ──
@@ -39,9 +39,11 @@ export default function App() {
   })
   /* const [completedHabits, setCompletedHabits] = useState([]);
   const [customHabits, setCustomHabits] = useState([]); */
-  //const [goals, setGoals] = useState([]);
-  const [totalPoints, setTotalPoints] = useState(0);
+const [totalPoints, setTotalPoints] = useState(0);
   const [moodEntries, setMoodEntries] = useState([]);
+  const [rewardPopup, setRewardPopup] = useState(null);
+  const prevDailyCountRef = useRef(0);
+  const prevWeeklyCountRef = useRef(0);
 
   // ── Listen for auth state changes (persists across refreshes) ──
   useEffect(() => {
@@ -204,21 +206,6 @@ export default function App() {
     }))
   };
 
-  /* const addGoal = (goal) => {
-  const handleDeleteHabit = (habitId) => {
-    setCustomHabits((prev) => prev.filter((h) => h.id !== habitId));
-  };
-
-  const addGoal = (goal) => {
-    setGoals((prev) => [...prev, goal]);
-  };
-
-  const completeGoal = (goalId) => {
-    setGoals((prev) =>
-      prev.map((g) => (g.id === goalId ? { ...g, completed: true } : g))
-    );
-    setTotalPoints((p) => p + 5);
-  }; */
 
   const handleMoodSelect = (moodId) => {
     const today = new Date().toISOString().split('T')[0]; // Format: YYYY-MM-DD
@@ -258,6 +245,37 @@ export default function App() {
     ...habits.monthly.completed
   ];
 
+  // Sync refs after data loads so login doesn't trigger milestone popups.
+  // This must stay above the milestone effects so it runs first.
+  useEffect(() => {
+    if (!dataLoading) {
+      prevDailyCountRef.current = habits.daily.completed.length;
+      prevWeeklyCountRef.current = habits.weekly.completed.length;
+    }
+  }, [dataLoading]);
+
+  // ── Milestone reward detection ──
+  useEffect(() => {
+    const dailyCount = habits.daily.completed.length;
+    if (dailyCount !== prevDailyCountRef.current) {
+      const reward = getDailyMilestoneReward(dailyCount);
+      if (reward) setRewardPopup(reward);
+      prevDailyCountRef.current = dailyCount;
+    }
+  }, [habits.daily.completed.length]);
+
+  useEffect(() => {
+    const weeklyCount = habits.weekly.completed.length;
+    if (weeklyCount !== prevWeeklyCountRef.current) {
+      const reward = getWeeklyMilestoneReward(weeklyCount);
+      if (reward) setRewardPopup(reward);
+      prevWeeklyCountRef.current = weeklyCount;
+    }
+  }, [habits.weekly.completed.length]);
+
+  // ── Milestone reward popup ──
+  const closeRewardPopup = useCallback(() => setRewardPopup(null), []);
+
   // ── Loading screen ──
   if (authLoading || dataLoading) {
     return (
@@ -278,6 +296,13 @@ export default function App() {
 
   return (
     <div className="min-h-screen pb-8">
+      {rewardPopup && (
+        <RewardPopup
+          emoji={rewardPopup.emoji}
+          message={rewardPopup.message}
+          onClose={closeRewardPopup}
+        />
+      )}
       {/* Header */}
       <header className="sticky top-0 z-50 backdrop-blur-md px-4 py-3" style={{ background: 'rgba(255, 251, 245, 0.85)' }}>
         <div className="max-w-lg mx-auto flex items-center justify-between">
@@ -333,10 +358,7 @@ export default function App() {
           {/* Right Column - Scrollable */}
           <div className="flex-1 space-y-5">
 
-          {/* Girl Math */}
-          {/* <GirlMath completedHabits={completedHabits} goals={goals} /> */}
-
-          {/* Daily Goals */}
+{/* Daily Goals */}
           <Habits
             completedHabits={habits.daily.completed}
             onToggle={toggleDailyHabit}
@@ -365,17 +387,12 @@ export default function App() {
             title="Monthly Goals"
           />
 
-          {/* Goals
-          <Goals
-            goals={goals}
-            onAddGoal={addGoal}
-            onCompleteGoal={completeGoal}
-          /> */}
+{/* Girl Math */}
+          <GirlMath completedHabits={allCompletedHabits} />
 
           {/* Reflection */}
           <Reflection
             completedHabits={allCompletedHabits}
-            goals={[]}
             companionType={companionType}
             companionStage={companionStage}
           />

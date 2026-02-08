@@ -1,8 +1,7 @@
-import React from 'react';
 import { generateGirlMath } from '../utils/helpers.js';
 
-export default function GirlMath({ completedHabits, goals }) {
-  const messages = generateGirlMath(completedHabits, goals);
+export default function GirlMath({ completedHabits }) {
+  const messages = generateGirlMath(completedHabits);
 
   if (messages.length === 0) return null;
 
