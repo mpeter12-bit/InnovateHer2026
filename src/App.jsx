@@ -26,15 +26,18 @@ export default function App() {
   const [habits, setHabits] = useState({
     daily: {
       completed: [],
-      custom: []
+      custom: [],
+      counts: {}
     },
     weekly: {
       completed: [],
-      custom: []
+      custom: [],
+      counts: {}
     },
     monthly: {
       completed: [],
-      custom: []
+      custom: [],
+      counts: {}
     },
   })
   /* const [completedHabits, setCompletedHabits] = useState([]);
@@ -55,9 +58,9 @@ export default function App() {
         if (data) {
           setCompanionType(data.companionType || null);
           setHabits(data.habits || {
-            daily: { completed: [], custom: [] },
-            weekly: { completed: [], custom: [] },
-            monthly: { completed: [], custom: [] }
+            daily: { completed: [], custom: [], counts: {} },
+            weekly: { completed: [], custom: [], counts: {} },
+            monthly: { completed: [], custom: [], counts: {} }
           });
           setTotalPoints(data.totalPoints || 0);
           setTheme(data.theme || 'warm');
@@ -73,9 +76,9 @@ export default function App() {
         // Reset state
         setCompanionType(null);
         setHabits({
-          daily: { completed: [], custom: [] },
-          weekly: { completed: [], custom: [] },
-          monthly: { completed: [], custom: [] }
+          daily: { completed: [], custom: [], counts: {} },
+          weekly: { completed: [], custom: [], counts: {} },
+          monthly: { completed: [], custom: [], counts: {} }
         });
         setTotalPoints(0);
         setTheme('warm');
@@ -160,6 +163,18 @@ export default function App() {
     }))
   };
 
+  const setDailyCounts = (countsOrUpdater) => {
+    setHabits(prev => ({
+      ...prev,
+      daily: {
+        ...prev.daily,
+        counts: typeof countsOrUpdater === 'function'
+          ? countsOrUpdater(prev.daily.counts)
+          : countsOrUpdater
+      }
+    }));
+  };
+
   const toggleWeeklyHabit = (habitId) => {
     setHabits(prev => ({
       ...prev,
@@ -182,6 +197,18 @@ export default function App() {
     }))
   };
 
+  const setWeeklyCounts = (countsOrUpdater) => {
+    setHabits(prev => ({
+      ...prev,
+      weekly: {
+        ...prev.weekly,
+        counts: typeof countsOrUpdater === 'function'
+          ? countsOrUpdater(prev.weekly.counts)
+          : countsOrUpdater
+      }
+    }));
+  };
+
   const toggleMonthlyHabit = (habitId) => {
     setHabits(prev => ({
       ...prev,
@@ -202,6 +229,42 @@ export default function App() {
         custom: [...prev.monthly.custom, habit]
       }
     }))
+  };
+
+  const setMonthlyCounts = (countsOrUpdater) => {
+    setHabits(prev => ({
+      ...prev,
+      monthly: {
+        ...prev.monthly,
+        counts: typeof countsOrUpdater === 'function'
+          ? countsOrUpdater(prev.monthly.counts)
+          : countsOrUpdater
+      }
+    }));
+  };
+
+  // Edit custom habit
+  const editCustomHabit = (category, habitId, updates) => {
+    setHabits(prev => ({
+      ...prev,
+      [category]: {
+        ...prev[category],
+        custom: prev[category].custom.map(h =>
+          h.id === habitId ? { ...h, ...updates } : h
+        )
+      }
+    }));
+  };
+
+  // Delete custom habit
+  const deleteCustomHabit = (category, habitId) => {
+    setHabits(prev => ({
+      ...prev,
+      [category]: {
+        ...prev[category],
+        custom: prev[category].custom.filter(h => h.id !== habitId)
+      }
+    }));
   };
 
   /* const addGoal = (goal) => {
@@ -280,7 +343,7 @@ export default function App() {
     <div className="min-h-screen pb-8">
       {/* Header */}
       <header className="sticky top-0 z-50 backdrop-blur-md px-4 py-3" style={{ background: 'rgba(255, 251, 245, 0.85)' }}>
-        <div className="max-w-lg mx-auto flex items-center justify-between">
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2">
             <span className="text-xl animate-sway inline-block">🌸</span>
             <h1 className="font-display text-lg font-semibold" style={{ color: 'var(--text-primary)' }}>
@@ -342,9 +405,11 @@ export default function App() {
             onToggle={toggleDailyHabit}
             customHabits={habits.daily.custom}
             onAddCustom={addDailyCustomHabit}
+            onEditCustom={(habitId, updates) => editCustomHabit('daily', habitId, updates)}
+            onDeleteCustom={(habitId) => deleteCustomHabit('daily', habitId)}
+            habitCounts={habits.daily.counts}
+            setHabitCounts={setDailyCounts}
             title="Daily Goals"
-            
-            //onDeleteCustom={handleDeleteHabit}
           />
 
           {/* Weekly Goals */}
@@ -353,6 +418,10 @@ export default function App() {
             onToggle={toggleWeeklyHabit}
             customHabits={habits.weekly.custom}
             onAddCustom={addWeeklyCustomHabit}
+            onEditCustom={(habitId, updates) => editCustomHabit('weekly', habitId, updates)}
+            onDeleteCustom={(habitId) => deleteCustomHabit('weekly', habitId)}
+            habitCounts={habits.weekly.counts}
+            setHabitCounts={setWeeklyCounts}
             title="Weekly Goals"
           />
 
@@ -362,6 +431,10 @@ export default function App() {
             onToggle={toggleMonthlyHabit}
             customHabits={habits.monthly.custom}
             onAddCustom={addMonthlyCustomHabit}
+            onEditCustom={(habitId, updates) => editCustomHabit('monthly', habitId, updates)}
+            onDeleteCustom={(habitId) => deleteCustomHabit('monthly', habitId)}
+            habitCounts={habits.monthly.counts}
+            setHabitCounts={setMonthlyCounts}
             title="Monthly Goals"
           />
 
