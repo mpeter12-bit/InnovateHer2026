@@ -6,7 +6,7 @@ export default function MoodTracker({ onMoodSelect, todayMood }) {
 
   const moods = [
     { id: 'happy', emoji: '😊', label: 'Happy', color: '#FBBF24' },
-    { id: 'mid', emoji: '😐', label: 'Okay', color: '#A78BFA' },
+    { id: 'mid', emoji: '😐', label: 'Okay', color: '#4ADE80' },
     { id: 'sad', emoji: '😢', label: 'Sad', color: '#60A5FA' },
     { id: 'mad', emoji: '😠', label: 'Mad', color: '#F472B6' },
   ];
