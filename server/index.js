@@ -19,7 +19,7 @@ app.use(express.json());
 // ── Rate limiting ──
 const requestTimestamps = new Map();
 const RATE_LIMIT_WINDOW = 60 * 1000; // 1 minute
-const MAX_REQUESTS_PER_WINDOW = 5; // Max 5 requests per minute
+const MAX_REQUESTS_PER_WINDOW = 5; // Max 10 requests per minute
 
 // ── Fallback messages (used when Gemini API fails or key is missing) ──
 const FALLBACK_MESSAGES = [
@@ -42,7 +42,7 @@ const POST_ADULT_FALLBACKS = [
 ];
 
 // ── Gemini API call with retry logic ──
-async function callGemini(prompt, retries = 2) {
+async function callGemini(prompt, retries = 1) {
   const apiKey = process.env.GEMINI_API_KEY;
 
   // TEMPORARY: Disable Gemini API and use fallbacks only
@@ -80,7 +80,7 @@ async function callGemini(prompt, retries = 2) {
         console.warn(`⏳ Rate limit hit (attempt ${attempt + 1}/${retries + 1})`);
         if (attempt < retries) {
           // Exponential backoff: wait 2^attempt seconds
-          await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempt) * 1000));
+          await new Promise(resolve => setTimeout(resolve, 1 * 1000));
           continue;
         }
         return null; // Out of retries
@@ -122,7 +122,7 @@ Goals completed so far: ${goalsDone > 0 ? goalsCompleted.join(', ') : 'none yet'
 
 ${companionStage === 'adult' ? `Their companion is fully grown. Acknowledge this milestone while emphasizing that growth and self-care are ongoing, lifelong journeys. Mention that their companion continues to thrive because of their care.` : `Their companion is still growing. Gently encourage them without pressure.`}
 
-Write a SHORT reflection (2-3 sentences max) that is:
+Write one SHORT full sentence (12 words max) that is:
 - Warm, kind, and non-judgmental
 - Normalizes inconsistency (it's okay to have off days)
 - Does NOT include medical advice, streak counts, or guilt
@@ -130,7 +130,7 @@ Write a SHORT reflection (2-3 sentences max) that is:
 - Focuses on self-compassion and gentle acknowledgment
 - ${habitCount === 0 ? 'Acknowledges that showing up is enough, even without completing habits' : 'Celebrates their effort without making it conditional'}
 
-Respond with ONLY the reflection text, no quotes or labels.`;
+Respond with ONLY the reflection text, no quotes or labels. MAKE SURE the sentence is complete and ends with a period or an exclamation mark. Do NOT return if the sentence is incomplete.`;
 }
 
 // ── /api/reflect endpoint with rate limiting & caching ──
@@ -167,8 +167,13 @@ app.post('/api/reflect', async (req, res) => {
     const geminiResponse = await callGemini(prompt);
 
     if (geminiResponse) {
-      console.log('✨ Fresh Gemini response received');
-      return res.json({ reflection: geminiResponse, source: 'gemini' });
+      const endsWithPunctuation = /[.!?]$/.test(geminiResponse.trim());
+      if (endsWithPunctuation) {
+        console.log('✨ Fresh Gemini response received (complete sentence)');
+        return res.json({ reflection: geminiResponse, source: 'gemini' });
+      } else {
+        console.warn('⚠️ Gemini response incomplete, using fallback. Was:', geminiResponse);
+      }
     }
 
     // Fallback
