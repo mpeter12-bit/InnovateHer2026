@@ -334,7 +334,7 @@ export default function App() {
           <div className="flex-1 space-y-5">
 
           {/* Girl Math */}
-          {/* <GirlMath completedHabits={completedHabits} goals={goals} /> */}
+          {/*<GirlMath completedHabits={completedHabits} goals={goals} /> */}
 
           {/* Daily Goals */}
           <Habits
@@ -343,6 +343,7 @@ export default function App() {
             customHabits={habits.daily.custom}
             onAddCustom={addDailyCustomHabit}
             title="Daily Goals"
+            titledesc="Small steps, big love — daily self-care for steady growth."
             
             //onDeleteCustom={handleDeleteHabit}
           />
@@ -354,6 +355,7 @@ export default function App() {
             customHabits={habits.weekly.custom}
             onAddCustom={addWeeklyCustomHabit}
             title="Weekly Goals"
+            titledesc="Nurture your growth — weekly intentions for blossoming self-care."
           />
 
           {/* Monthly Goals */}
@@ -363,6 +365,7 @@ export default function App() {
             customHabits={habits.monthly.custom}
             onAddCustom={addMonthlyCustomHabit}
             title="Monthly Goals"
+            titledesc="Cultivate your well-being — monthly milestones for flourishing self-care."
           />
 
           {/* Goals

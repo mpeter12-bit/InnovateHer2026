@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { DEFAULT_HABITS } from '../utils/helpers.js';
 
-export default function Habits({ completedHabits, onToggle, customHabits, onAddCustom, title }) {
+export default function Habits({ completedHabits, onToggle, customHabits, onAddCustom, title, titledesc }) {
   const [newHabit, setNewHabit] = useState('');
   const [showAdd, setShowAdd] = useState(false);
   const [habitCounts, setHabitCounts] = useState({});
@@ -81,7 +81,7 @@ export default function Habits({ completedHabits, onToggle, customHabits, onAddC
       </div>
 
       <p className="text-xs mb-4" style={{ color: 'var(--text-muted)' }}>
-        No pressure — check off whatever feels right today.
+        {titledesc}
       </p>
 
       <div className="space-y-2">
