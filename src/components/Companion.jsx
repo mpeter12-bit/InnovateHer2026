@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 
 // ── Plant SVG stages ──
 function PlantSVG({ stage, postAdultPoints = 0 }) {
@@ -269,8 +269,11 @@ function AnimalSVG({ stage, postAdultPoints = 0 }) {
 }
 
 // ── Main Companion Component ──
-export default function Companion({ type, totalPoints }) {
+export default function Companion({ type, totalPoints, companionName, onRename }) {
   const [particles, setParticles] = useState([]);
+  const [editingName, setEditingName] = useState(false);
+  const [nameInput, setNameInput] = useState('');
+  const nameInputRef = useRef(null);
   const stage = totalPoints >= 50 ? 'adult' : totalPoints >= 25 ? 'young' : totalPoints >= 10 ? 'teen' : 'baby';
   const postAdultPoints = stage === 'adult' ? totalPoints - 50 : 0;
 
@@ -324,6 +327,43 @@ export default function Companion({ type, totalPoints }) {
 
       {/* Stage info */}
       <div className="text-center">
+        {/* Editable companion name */}
+        {editingName ? (
+          <input
+            ref={nameInputRef}
+            type="text"
+            value={nameInput}
+            onChange={(e) => setNameInput(e.target.value)}
+            onBlur={() => {
+              onRename(nameInput.trim());
+              setEditingName(false);
+            }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') { onRename(nameInput.trim()); setEditingName(false); }
+              if (e.key === 'Escape') setEditingName(false);
+            }}
+            maxLength={24}
+            className="text-sm text-center rounded-lg px-2 py-1 outline-none focus:ring-2 mb-1"
+            style={{
+              background: 'var(--bg-secondary)',
+              color: 'var(--text-primary)',
+              border: '1px solid rgba(119, 154, 119, 0.3)',
+              '--tw-ring-color': 'var(--accent-sage)',
+            }}
+            autoFocus
+            placeholder="Name your companion…"
+          />
+        ) : (
+          <button
+            onClick={() => { setNameInput(companionName || ''); setEditingName(true); }}
+            className="text-sm mb-1 transition-all hover:opacity-70"
+            style={{ color: companionName ? 'var(--text-primary)' : 'var(--text-muted)' }}
+            title="Click to name your companion"
+          >
+            {companionName || 'Give me a name ✏️'}
+          </button>
+        )}
+
         <h3 className="font-display text-lg font-medium" style={{ color: 'var(--text-primary)' }}>
           {type === 'plant' ? '🌿' : '🐾'} {stageLabel}
         </h3>

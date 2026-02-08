@@ -20,6 +20,7 @@ export default function App() {
 
   // ── App State ──
   const [companionType, setCompanionType] = useState(null);
+  const [companionName, setCompanionName] = useState('');
   const [theme, setTheme] = useState('warm');
 
   // --Newly Added Object Habit States
@@ -59,6 +60,7 @@ const [totalPoints, setTotalPoints] = useState(0);
         const data = await loadUserData(user.uid);
         if (data) {
           setCompanionType(data.companionType || null);
+          setCompanionName(data.companionName || '');
           setHabits(data.habits || {
             daily: { completed: [], custom: [], counts: {} },
             weekly: { completed: [], custom: [], counts: {} },
@@ -99,6 +101,7 @@ const [totalPoints, setTotalPoints] = useState(0);
     const timeout = setTimeout(() => {
       saveUserData(firebaseUser.uid, {
         companionType,
+        companionName,
         habits,
         totalPoints,
         theme,
@@ -108,7 +111,7 @@ const [totalPoints, setTotalPoints] = useState(0);
     }, 1000); // Debounce: save 1s after last change
 
     return () => clearTimeout(timeout);
-  }, [companionType, habits, totalPoints, theme, moodEntries, firebaseUser, authLoading, dataLoading]);
+  }, [companionType, companionName, habits, totalPoints, theme, moodEntries, firebaseUser, authLoading, dataLoading]);
 
   // ── Apply theme ──
   useEffect(() => {
@@ -428,7 +431,7 @@ const [totalPoints, setTotalPoints] = useState(0);
             </div>
 
             {/* Companion */}
-            <Companion type={companionType} totalPoints={totalPoints} />
+            <Companion type={companionType} totalPoints={totalPoints} companionName={companionName} onRename={setCompanionName} />
 
             {/* Mood Tracker */}
             <MoodTracker onMoodSelect={handleMoodSelect} todayMood={todayMood} />
