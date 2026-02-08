@@ -295,10 +295,11 @@ export default function Companion({ type, totalPoints, companionName, onRename }
   }, [postAdultPoints]);
 
   const stageLabel = { baby: 'Sprout', teen: 'Growing', young: 'Maturing', adult: 'Fully Bloomed' }[stage];
+  const stageStart = stage === 'baby' ? 0 : stage === 'teen' ? 10 : stage === 'young' ? 25 : 50;
   const nextThreshold = stage === 'baby' ? 10 : stage === 'teen' ? 25 : stage === 'young' ? 50 : null;
-  const progress = nextThreshold
-    ? ((totalPoints - (stage === 'baby' ? 0 : stage === 'teen' ? 10 : 25)) / (nextThreshold - (stage === 'baby' ? 0 : stage === 'teen' ? 10 : 25))) * 100
-    : 100;
+  const pointsInStage = nextThreshold ? totalPoints - stageStart : 0;
+  const pointsNeeded = nextThreshold ? nextThreshold - stageStart : 0;
+  const progress = nextThreshold ? (pointsInStage / pointsNeeded) * 100 : 100;
 
   return (
     <div
