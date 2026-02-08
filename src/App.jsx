@@ -26,15 +26,18 @@ export default function App() {
   const [habits, setHabits] = useState({
     daily: {
       completed: [],
-      custom: []
+      custom: [],
+      counts: {}
     },
     weekly: {
       completed: [],
-      custom: []
+      custom: [],
+      counts: {}
     },
     monthly: {
       completed: [],
-      custom: []
+      custom: [],
+      counts: {}
     },
   })
   /* const [completedHabits, setCompletedHabits] = useState([]);
@@ -57,9 +60,9 @@ const [totalPoints, setTotalPoints] = useState(0);
         if (data) {
           setCompanionType(data.companionType || null);
           setHabits(data.habits || {
-            daily: { completed: [], custom: [] },
-            weekly: { completed: [], custom: [] },
-            monthly: { completed: [], custom: [] }
+            daily: { completed: [], custom: [], counts: {} },
+            weekly: { completed: [], custom: [], counts: {} },
+            monthly: { completed: [], custom: [], counts: {} }
           });
           setTotalPoints(data.totalPoints || 0);
           setTheme(data.theme || 'warm');
@@ -75,9 +78,9 @@ const [totalPoints, setTotalPoints] = useState(0);
         // Reset state
         setCompanionType(null);
         setHabits({
-          daily: { completed: [], custom: [] },
-          weekly: { completed: [], custom: [] },
-          monthly: { completed: [], custom: [] }
+          daily: { completed: [], custom: [], counts: {} },
+          weekly: { completed: [], custom: [], counts: {} },
+          monthly: { completed: [], custom: [], counts: {} }
         });
         setTotalPoints(0);
         setTheme('warm');
@@ -162,6 +165,18 @@ const [totalPoints, setTotalPoints] = useState(0);
     }))
   };
 
+  const setDailyCounts = (countsOrUpdater) => {
+    setHabits(prev => ({
+      ...prev,
+      daily: {
+        ...prev.daily,
+        counts: typeof countsOrUpdater === 'function'
+          ? countsOrUpdater(prev.daily.counts)
+          : countsOrUpdater
+      }
+    }));
+  };
+
   const toggleWeeklyHabit = (habitId) => {
     setHabits(prev => ({
       ...prev,
@@ -182,6 +197,18 @@ const [totalPoints, setTotalPoints] = useState(0);
         custom: [...prev.weekly.custom, habit]
       }
     }))
+  };
+
+  const setWeeklyCounts = (countsOrUpdater) => {
+    setHabits(prev => ({
+      ...prev,
+      weekly: {
+        ...prev.weekly,
+        counts: typeof countsOrUpdater === 'function'
+          ? countsOrUpdater(prev.weekly.counts)
+          : countsOrUpdater
+      }
+    }));
   };
 
   const toggleMonthlyHabit = (habitId) => {
@@ -206,6 +233,57 @@ const [totalPoints, setTotalPoints] = useState(0);
     }))
   };
 
+  const setMonthlyCounts = (countsOrUpdater) => {
+    setHabits(prev => ({
+      ...prev,
+      monthly: {
+        ...prev.monthly,
+        counts: typeof countsOrUpdater === 'function'
+          ? countsOrUpdater(prev.monthly.counts)
+          : countsOrUpdater
+      }
+    }));
+  };
+
+  // Edit custom habit
+  const editCustomHabit = (category, habitId, updates) => {
+    setHabits(prev => ({
+      ...prev,
+      [category]: {
+        ...prev[category],
+        custom: prev[category].custom.map(h =>
+          h.id === habitId ? { ...h, ...updates } : h
+        )
+      }
+    }));
+  };
+
+  // Delete custom habit
+  const deleteCustomHabit = (category, habitId) => {
+    setHabits(prev => ({
+      ...prev,
+      [category]: {
+        ...prev[category],
+        custom: prev[category].custom.filter(h => h.id !== habitId)
+      }
+    }));
+  };
+
+  /* const addGoal = (goal) => {
+  const handleDeleteHabit = (habitId) => {
+    setCustomHabits((prev) => prev.filter((h) => h.id !== habitId));
+  };
+
+  const addGoal = (goal) => {
+    setGoals((prev) => [...prev, goal]);
+  };
+
+  const completeGoal = (goalId) => {
+    setGoals((prev) =>
+      prev.map((g) => (g.id === goalId ? { ...g, completed: true } : g))
+    );
+    setTotalPoints((p) => p + 5);
+  }; */
 
   const handleMoodSelect = (moodId) => {
     const today = new Date().toISOString().split('T')[0]; // Format: YYYY-MM-DD
@@ -305,7 +383,7 @@ const [totalPoints, setTotalPoints] = useState(0);
       )}
       {/* Header */}
       <header className="sticky top-0 z-50 backdrop-blur-md px-4 py-3" style={{ background: 'rgba(255, 251, 245, 0.85)' }}>
-        <div className="max-w-lg mx-auto flex items-center justify-between">
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2">
             <span className="text-xl animate-sway inline-block">🌸</span>
             <h1 className="font-display text-lg font-semibold" style={{ color: 'var(--text-primary)' }}>
@@ -358,15 +436,18 @@ const [totalPoints, setTotalPoints] = useState(0);
           {/* Right Column - Scrollable */}
           <div className="flex-1 space-y-5">
 
-{/* Daily Goals */}
+
+          {/* Daily Goals */}
           <Habits
             completedHabits={habits.daily.completed}
             onToggle={toggleDailyHabit}
             customHabits={habits.daily.custom}
             onAddCustom={addDailyCustomHabit}
+            onEditCustom={(habitId, updates) => editCustomHabit('daily', habitId, updates)}
+            onDeleteCustom={(habitId) => deleteCustomHabit('daily', habitId)}
+            habitCounts={habits.daily.counts}
+            setHabitCounts={setDailyCounts}
             title="Daily Goals"
-            
-            //onDeleteCustom={handleDeleteHabit}
           />
 
           {/* Weekly Goals */}
@@ -375,7 +456,12 @@ const [totalPoints, setTotalPoints] = useState(0);
             onToggle={toggleWeeklyHabit}
             customHabits={habits.weekly.custom}
             onAddCustom={addWeeklyCustomHabit}
+            onEditCustom={(habitId, updates) => editCustomHabit('weekly', habitId, updates)}
+            onDeleteCustom={(habitId) => deleteCustomHabit('weekly', habitId)}
+            habitCounts={habits.weekly.counts}
+            setHabitCounts={setWeeklyCounts}
             title="Weekly Goals"
+            titledesc="Nurture your growth — weekly intentions for blossoming self-care."
           />
 
           {/* Monthly Goals */}
@@ -384,7 +470,12 @@ const [totalPoints, setTotalPoints] = useState(0);
             onToggle={toggleMonthlyHabit}
             customHabits={habits.monthly.custom}
             onAddCustom={addMonthlyCustomHabit}
+            onEditCustom={(habitId, updates) => editCustomHabit('monthly', habitId, updates)}
+            onDeleteCustom={(habitId) => deleteCustomHabit('monthly', habitId)}
+            habitCounts={habits.monthly.counts}
+            setHabitCounts={setMonthlyCounts}
             title="Monthly Goals"
+            titledesc="Cultivate your well-being — monthly milestones for flourishing self-care."
           />
 
 {/* Girl Math */}
