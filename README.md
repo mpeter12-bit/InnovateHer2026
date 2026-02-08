@@ -147,12 +147,12 @@ npm run dev
 
 1. **Sign up** with any email → choose plant or animal companion
 2. **Name your companion** by clicking the name placeholder
-3. **Check off habits** → watch companion grow and girl math appear
-4. **Hit 5 daily habits** → confetti reward popup fires
-5. **Get a Reflection** → gentle AI message appears
-6. **Log your mood** → emoji mood tracker
-7. **Toggle theme** → warm ↔ pastel
-8. **Add a custom habit** with a goal frequency counter
+3. **Add a custom habit** with a goal frequency counter
+4. **Check off habits** → watch companion grow and girl math appear
+5. **Hit 5 daily habits** → confetti reward popup fires
+6. **Get a Reflection** → gentle AI message appears
+7. **Log your mood** → emoji mood tracker
+8. **Toggle theme** → warm ↔ pastel
 
 ---
 
