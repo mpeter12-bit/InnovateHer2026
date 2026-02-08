@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { auth } from './firebase.js';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { saveUserData, loadUserData, createUserProfile } from './utils/database.js';
@@ -7,10 +7,10 @@ import CompanionChoice from './components/CompanionChoice.jsx';
 import Companion from './components/Companion.jsx';
 import MoodTracker from './components/MoodTracker.jsx';
 import Habits from './components/Habits.jsx';
-import Goals from './components/Goals.jsx';
 import GirlMath from './components/GirlMath.jsx';
 import Reflection from './components/Reflection.jsx';
-import { DEFAULT_HABITS } from './utils/helpers.js';
+import RewardPopup from './components/RewardPopup.jsx';
+import { DEFAULT_HABITS, getWeeklyMilestoneReward, getDailyMilestoneReward, getMonthlyMilestoneReward } from './utils/helpers.js';
 
 export default function App() {
   // ── Auth ──
@@ -20,28 +20,40 @@ export default function App() {
 
   // ── App State ──
   const [companionType, setCompanionType] = useState(null);
+  const [companionName, setCompanionName] = useState('');
   const [theme, setTheme] = useState('warm');
 
   // --Newly Added Object Habit States
   const [habits, setHabits] = useState({
     daily: {
       completed: [],
-      custom: []
+      custom: [],
+      counts: {}
     },
     weekly: {
       completed: [],
-      custom: []
+      custom: [],
+      counts: {}
     },
     monthly: {
       completed: [],
-      custom: []
+      custom: [],
+      counts: {}
     },
   })
   /* const [completedHabits, setCompletedHabits] = useState([]);
   const [customHabits, setCustomHabits] = useState([]); */
-  //const [goals, setGoals] = useState([]);
-  const [totalPoints, setTotalPoints] = useState(0);
+const [totalPoints, setTotalPoints] = useState(0);
+  const getLocalDate = () => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  };
+  const [lastDailyReset, setLastDailyReset] = useState(getLocalDate());
   const [moodEntries, setMoodEntries] = useState([]);
+  const [rewardPopup, setRewardPopup] = useState(null);
+  const prevDailyCountRef = useRef(0);
+  const prevWeeklyCountRef = useRef(0);
+  const prevMonthlyCountRef = useRef(0);
 
   // ── Listen for auth state changes (persists across refreshes) ──
   useEffect(() => {
@@ -54,11 +66,26 @@ export default function App() {
         const data = await loadUserData(user.uid);
         if (data) {
           setCompanionType(data.companionType || null);
-          setHabits(data.habits || {
-            daily: { completed: [], custom: [] },
-            weekly: { completed: [], custom: [] },
-            monthly: { completed: [], custom: [] }
-          });
+          setCompanionName(data.companionName || '');
+          const loadedHabits = data.habits || {
+            daily: { completed: [], custom: [], counts: {} },
+            weekly: { completed: [], custom: [], counts: {} },
+            monthly: { completed: [], custom: [], counts: {} }
+          };
+
+          // Reset daily progress if the date has changed
+          const today = getLocalDate();
+          const lastDailyReset = data.lastDailyReset || '';
+          if (lastDailyReset !== today) {
+            loadedHabits.daily = {
+              ...loadedHabits.daily,
+              completed: [],
+              counts: {}
+            };
+          }
+
+          setHabits(loadedHabits);
+          setLastDailyReset(lastDailyReset !== today ? today : lastDailyReset);
           setTotalPoints(data.totalPoints || 0);
           setTheme(data.theme || 'warm');
           setMoodEntries(data.moodEntries || []);
@@ -73,11 +100,12 @@ export default function App() {
         // Reset state
         setCompanionType(null);
         setHabits({
-          daily: { completed: [], custom: [] },
-          weekly: { completed: [], custom: [] },
-          monthly: { completed: [], custom: [] }
+          daily: { completed: [], custom: [], counts: {} },
+          weekly: { completed: [], custom: [], counts: {} },
+          monthly: { completed: [], custom: [], counts: {} }
         });
         setTotalPoints(0);
+        setLastDailyReset(getLocalDate());
         setTheme('warm');
         setMoodEntries([]);
       }
@@ -87,6 +115,17 @@ export default function App() {
     return () => unsubscribe();
   }, []);
 
+  useEffect(() => {
+  const daily = habits.daily.completed.length;
+  const weekly = habits.weekly.completed.length;
+  const monthly = habits.monthly.completed.length;
+
+  const newTotal = daily + weekly + monthly;
+
+  setTotalPoints(newTotal);
+}, [habits]);
+
+
   // ── Auto-save to Firestore when state changes (debounced) ──
   useEffect(() => {
     if (!firebaseUser || authLoading || dataLoading) return;
@@ -94,8 +133,10 @@ export default function App() {
     const timeout = setTimeout(() => {
       saveUserData(firebaseUser.uid, {
         companionType,
+        companionName,
         habits,
         totalPoints,
+        lastDailyReset,
         theme,
         moodEntries,
         email: firebaseUser.email,
@@ -103,7 +144,7 @@ export default function App() {
     }, 1000); // Debounce: save 1s after last change
 
     return () => clearTimeout(timeout);
-  }, [companionType, habits, totalPoints, theme, moodEntries, firebaseUser, authLoading, dataLoading]);
+  }, [companionType, companionName, habits, totalPoints, lastDailyReset, theme, moodEntries, firebaseUser, authLoading, dataLoading]);
 
   // ── Apply theme ──
   useEffect(() => {
@@ -137,17 +178,20 @@ export default function App() {
     setCustomHabits((prev) => [...prev, habit]);
   }; */
 
-  // Toggle a daily habit
+  // Toggle a daily habit — award/remove a point
   const toggleDailyHabit = (habitId) => {
-    setHabits(prev => ({
-      ...prev,
-      daily: {
-        ...prev.daily,
-        completed: prev.daily.completed.includes(habitId)
-          ? prev.daily.completed.filter(id => id !== habitId)
-          : [...prev.daily.completed, habitId]
-      }
-    }));
+    setHabits(prev => {
+      const wasCompleted = prev.daily.completed.includes(habitId);
+      return {
+        ...prev,
+        daily: {
+          ...prev.daily,
+          completed: wasCompleted
+            ? prev.daily.completed.filter(id => id !== habitId)
+            : [...prev.daily.completed, habitId]
+        }
+      };
+    });
   };
 
   const addDailyCustomHabit = (habit) => {
@@ -160,16 +204,32 @@ export default function App() {
     }))
   };
 
-  const toggleWeeklyHabit = (habitId) => {
+  const setDailyCounts = (countsOrUpdater) => {
     setHabits(prev => ({
       ...prev,
-      weekly: {
-        ...prev.weekly,
-        completed: prev.weekly.completed.includes(habitId)
-          ? prev.weekly.completed.filter(id => id !== habitId)
-          : [...prev.weekly.completed, habitId]
+      daily: {
+        ...prev.daily,
+        counts: typeof countsOrUpdater === 'function'
+          ? countsOrUpdater(prev.daily.counts)
+          : countsOrUpdater
       }
     }));
+  };
+
+  // Toggle a weekly habit — award/remove a point
+  const toggleWeeklyHabit = (habitId) => {
+    setHabits(prev => {
+      const wasCompleted = prev.weekly.completed.includes(habitId);
+      return {
+        ...prev,
+        weekly: {
+          ...prev.weekly,
+          completed: wasCompleted
+            ? prev.weekly.completed.filter(id => id !== habitId)
+            : [...prev.weekly.completed, habitId]
+        }
+      };
+    });
   };
 
   const addWeeklyCustomHabit = (habit) => {
@@ -182,16 +242,32 @@ export default function App() {
     }))
   };
 
-  const toggleMonthlyHabit = (habitId) => {
+  const setWeeklyCounts = (countsOrUpdater) => {
     setHabits(prev => ({
       ...prev,
-      monthly: {
-        ...prev.monthly,
-        completed: prev.monthly.completed.includes(habitId)
-          ? prev.monthly.completed.filter(id => id !== habitId)
-          : [...prev.monthly.completed, habitId]
+      weekly: {
+        ...prev.weekly,
+        counts: typeof countsOrUpdater === 'function'
+          ? countsOrUpdater(prev.weekly.counts)
+          : countsOrUpdater
       }
     }));
+  };
+
+  // Toggle a monthly habit — award/remove a point
+  const toggleMonthlyHabit = (habitId) => {
+    setHabits(prev => {
+      const wasCompleted = prev.monthly.completed.includes(habitId);
+      return {
+        ...prev,
+        monthly: {
+          ...prev.monthly,
+          completed: wasCompleted
+            ? prev.monthly.completed.filter(id => id !== habitId)
+            : [...prev.monthly.completed, habitId]
+        }
+      };
+    });
   };
 
   const addMonthlyCustomHabit = (habit) => {
@@ -202,6 +278,43 @@ export default function App() {
         custom: [...prev.monthly.custom, habit]
       }
     }))
+  };
+
+  const setMonthlyCounts = (countsOrUpdater) => {
+    setHabits(prev => ({
+      ...prev,
+      monthly: {
+        ...prev.monthly,
+        counts: typeof countsOrUpdater === 'function'
+          ? countsOrUpdater(prev.monthly.counts)
+          : countsOrUpdater
+      }
+    }));
+  };
+
+  // Edit custom habit
+  const editCustomHabit = (category, habitId, updates) => {
+    setHabits(prev => ({
+      ...prev,
+      [category]: {
+        ...prev[category],
+        custom: prev[category].custom.map(h =>
+          h.id === habitId ? { ...h, ...updates } : h
+        )
+      }
+    }));
+  };
+
+  // Delete custom habit — also removes from completed so the count stays accurate
+  const deleteCustomHabit = (category, habitId) => {
+    setHabits(prev => ({
+      ...prev,
+      [category]: {
+        ...prev[category],
+        custom: prev[category].custom.filter(h => h.id !== habitId),
+        completed: prev[category].completed.filter(id => id !== habitId),
+      }
+    }));
   };
 
   /* const addGoal = (goal) => {
@@ -258,6 +371,47 @@ export default function App() {
     ...habits.monthly.completed
   ];
 
+  // Sync refs after data loads so login doesn't trigger milestone popups.
+  // This must stay above the milestone effects so it runs first.
+  useEffect(() => {
+    if (!dataLoading) {
+      prevDailyCountRef.current = habits.daily.completed.length;
+      prevWeeklyCountRef.current = habits.weekly.completed.length;
+      prevMonthlyCountRef.current = habits.monthly.completed.length;
+    }
+  }, [dataLoading]);
+
+  // ── Milestone reward detection ──
+  useEffect(() => {
+    const dailyCount = habits.daily.completed.length;
+    if (dailyCount !== prevDailyCountRef.current) {
+      const reward = getDailyMilestoneReward(dailyCount);
+      if (reward) setRewardPopup(reward);
+      prevDailyCountRef.current = dailyCount;
+    }
+  }, [habits.daily.completed.length]);
+
+  useEffect(() => {
+    const weeklyCount = habits.weekly.completed.length;
+    if (weeklyCount !== prevWeeklyCountRef.current) {
+      const reward = getWeeklyMilestoneReward(weeklyCount);
+      if (reward) setRewardPopup(reward);
+      prevWeeklyCountRef.current = weeklyCount;
+    }
+  }, [habits.weekly.completed.length]);
+
+  useEffect(() => {
+    const monthlyCount = habits.monthly.completed.length;
+    if (monthlyCount !== prevMonthlyCountRef.current) {
+      const reward = getMonthlyMilestoneReward(monthlyCount);
+      if (reward) setRewardPopup(reward);
+      prevMonthlyCountRef.current = monthlyCount;
+    }
+  }, [habits.monthly.completed.length]);
+
+  // ── Milestone reward popup ──
+  const closeRewardPopup = useCallback(() => setRewardPopup(null), []);
+
   // ── Loading screen ──
   if (authLoading || dataLoading) {
     return (
@@ -278,9 +432,16 @@ export default function App() {
 
   return (
     <div className="min-h-screen pb-8">
+      {rewardPopup && (
+        <RewardPopup
+          emoji={rewardPopup.emoji}
+          message={rewardPopup.message}
+          onClose={closeRewardPopup}
+        />
+      )}
       {/* Header */}
       <header className="sticky top-0 z-50 backdrop-blur-md px-4 py-3" style={{ background: 'rgba(255, 251, 245, 0.85)' }}>
-        <div className="max-w-lg mx-auto flex items-center justify-between">
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2">
             <span className="text-xl animate-sway inline-block">🌸</span>
             <h1 className="font-display text-lg font-semibold" style={{ color: 'var(--text-primary)' }}>
@@ -314,9 +475,9 @@ export default function App() {
 
       {/* Main content */}
       <main className="max-w-7xl mx-auto px-4 mt-4 page-enter">
-        <div className="flex gap-6">
-          {/* Left Column - Static */}
-          <div className="sticky top-20 self-start w-80 max-h-[calc(100vh-100px)] overflow-y-auto">
+        <div className="flex flex-col md:flex-row gap-6">
+          {/* Left Column - Static on larger screens, stacked on mobile */}
+          <div className="w-full md:w-80 md:sticky md:top-20 md:self-start md:max-h-[calc(100vh-100px)] md:overflow-y-auto">
             <div className="text-center">
               <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
                 Welcome back, <span className="font-medium">{firebaseUser.email.split('@')[0]}</span> 💚
@@ -324,17 +485,15 @@ export default function App() {
             </div>
 
             {/* Companion */}
-            <Companion type={companionType} totalPoints={totalPoints} />
+            <Companion type={companionType} totalPoints={totalPoints} companionName={companionName} onRename={setCompanionName} />
 
             {/* Mood Tracker */}
             <MoodTracker onMoodSelect={handleMoodSelect} todayMood={todayMood} />
           </div>
 
           {/* Right Column - Scrollable */}
-          <div className="flex-1 overflow-y-auto space-y-5">
+          <div className="flex-1 space-y-5">
 
-          {/* Girl Math */}
-          {/* <GirlMath completedHabits={completedHabits} goals={goals} /> */}
 
           {/* Daily Goals */}
           <Habits
@@ -342,9 +501,12 @@ export default function App() {
             onToggle={toggleDailyHabit}
             customHabits={habits.daily.custom}
             onAddCustom={addDailyCustomHabit}
+            onEditCustom={(habitId, updates) => editCustomHabit('daily', habitId, updates)}
+            onDeleteCustom={(habitId) => deleteCustomHabit('daily', habitId)}
+            habitCounts={habits.daily.counts}
+            setHabitCounts={setDailyCounts}
             title="Daily Goals"
-            
-            onDeleteCustom={handleDeleteHabit}
+            titledesc="Bloom each day — small self-care rituals for a flourishing mindset."
           />
 
           {/* Weekly Goals */}
@@ -353,7 +515,12 @@ export default function App() {
             onToggle={toggleWeeklyHabit}
             customHabits={habits.weekly.custom}
             onAddCustom={addWeeklyCustomHabit}
+            onEditCustom={(habitId, updates) => editCustomHabit('weekly', habitId, updates)}
+            onDeleteCustom={(habitId) => deleteCustomHabit('weekly', habitId)}
+            habitCounts={habits.weekly.counts}
+            setHabitCounts={setWeeklyCounts}
             title="Weekly Goals"
+            titledesc="Nurture your growth — weekly intentions for blossoming self-care."
           />
 
           {/* Monthly Goals */}
@@ -362,20 +529,20 @@ export default function App() {
             onToggle={toggleMonthlyHabit}
             customHabits={habits.monthly.custom}
             onAddCustom={addMonthlyCustomHabit}
+            onEditCustom={(habitId, updates) => editCustomHabit('monthly', habitId, updates)}
+            onDeleteCustom={(habitId) => deleteCustomHabit('monthly', habitId)}
+            habitCounts={habits.monthly.counts}
+            setHabitCounts={setMonthlyCounts}
             title="Monthly Goals"
+            titledesc="Cultivate your well-being — monthly milestones for flourishing self-care."
           />
 
-          {/* Goals
-          <Goals
-            goals={goals}
-            onAddGoal={addGoal}
-            onCompleteGoal={completeGoal}
-          /> */}
+        {/* Girl Math */}
+          <GirlMath completedHabits={allCompletedHabits} />
 
           {/* Reflection */}
           <Reflection
             completedHabits={allCompletedHabits}
-            goals={[]}
             companionType={companionType}
             companionStage={companionStage}
           />
