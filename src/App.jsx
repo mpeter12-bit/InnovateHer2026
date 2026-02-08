@@ -113,6 +113,17 @@ const [totalPoints, setTotalPoints] = useState(0);
     return () => unsubscribe();
   }, []);
 
+  useEffect(() => {
+  const daily = habits.daily.completed.length;
+  const weekly = habits.weekly.completed.length;
+  const monthly = habits.monthly.completed.length;
+
+  const newTotal = daily + weekly + monthly;
+
+  setTotalPoints(newTotal);
+}, [habits]);
+
+
   // ── Auto-save to Firestore when state changes (debounced) ──
   useEffect(() => {
     if (!firebaseUser || authLoading || dataLoading) return;
@@ -165,17 +176,20 @@ const [totalPoints, setTotalPoints] = useState(0);
     setCustomHabits((prev) => [...prev, habit]);
   }; */
 
-  // Toggle a daily habit
+  // Toggle a daily habit — award/remove a point
   const toggleDailyHabit = (habitId) => {
-    setHabits(prev => ({
-      ...prev,
-      daily: {
-        ...prev.daily,
-        completed: prev.daily.completed.includes(habitId)
-          ? prev.daily.completed.filter(id => id !== habitId)
-          : [...prev.daily.completed, habitId]
-      }
-    }));
+    setHabits(prev => {
+      const wasCompleted = prev.daily.completed.includes(habitId);
+      return {
+        ...prev,
+        daily: {
+          ...prev.daily,
+          completed: wasCompleted
+            ? prev.daily.completed.filter(id => id !== habitId)
+            : [...prev.daily.completed, habitId]
+        }
+      };
+    });
   };
 
   const addDailyCustomHabit = (habit) => {
@@ -200,16 +214,20 @@ const [totalPoints, setTotalPoints] = useState(0);
     }));
   };
 
+  // Toggle a weekly habit — award/remove a point
   const toggleWeeklyHabit = (habitId) => {
-    setHabits(prev => ({
-      ...prev,
-      weekly: {
-        ...prev.weekly,
-        completed: prev.weekly.completed.includes(habitId)
-          ? prev.weekly.completed.filter(id => id !== habitId)
-          : [...prev.weekly.completed, habitId]
-      }
-    }));
+    setHabits(prev => {
+      const wasCompleted = prev.weekly.completed.includes(habitId);
+      return {
+        ...prev,
+        weekly: {
+          ...prev.weekly,
+          completed: wasCompleted
+            ? prev.weekly.completed.filter(id => id !== habitId)
+            : [...prev.weekly.completed, habitId]
+        }
+      };
+    });
   };
 
   const addWeeklyCustomHabit = (habit) => {
@@ -234,16 +252,20 @@ const [totalPoints, setTotalPoints] = useState(0);
     }));
   };
 
+  // Toggle a monthly habit — award/remove a point
   const toggleMonthlyHabit = (habitId) => {
-    setHabits(prev => ({
-      ...prev,
-      monthly: {
-        ...prev.monthly,
-        completed: prev.monthly.completed.includes(habitId)
-          ? prev.monthly.completed.filter(id => id !== habitId)
-          : [...prev.monthly.completed, habitId]
-      }
-    }));
+    setHabits(prev => {
+      const wasCompleted = prev.monthly.completed.includes(habitId);
+      return {
+        ...prev,
+        monthly: {
+          ...prev.monthly,
+          completed: wasCompleted
+            ? prev.monthly.completed.filter(id => id !== habitId)
+            : [...prev.monthly.completed, habitId]
+        }
+      };
+    });
   };
 
   const addMonthlyCustomHabit = (habit) => {
