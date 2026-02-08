@@ -1,204 +1,158 @@
-# 🌸 HabitBloom
+# SAGE — Self-care and Goal Engagement
 
-**A trauma-informed mind-wellness app with gamified "girl math" elements and companion growth that continues after adulthood.**
+> A trauma-informed wellness app with a companion that grows alongside you. No streaks. No shame. Just gentle progress.
 
-Built for hackathons — designed with care.
+Built for **InnovateHer 2026**.
 
 ---
 
-## 🚀 Quick Start
+## What Is SAGE?
+
+SAGE is a self-care habit tracker where completing daily goals nurtures a virtual companion — a plant or animal — that visually grows as you care for yourself. It layers in playful "girl math" motivation, milestone celebration popups, mood logging, and AI-powered gentle reflections, all designed around trauma-informed principles: no punishment for missing days, no calorie tracking, no guilt.
+
+---
+
+## Core Features
+
+### Companion Growth
+- Choose a **plant** or **animal** companion at signup
+- Companion evolves through 4 visual SVG stages: **Baby → Teen → Young → Adult**
+- Growth is driven by habit completion points
+- **Post-adult growth never stops** — plants bloom extra flowers, animals gain accessories (crown, bow tie, sparkles) — reinforcing that self-care is lifelong, not a destination
+- **Name your companion** by clicking the name area — saved to your profile
+
+### Habit Tracking (Daily / Weekly / Monthly)
+- Three separate trackers, each with its own goal list
+- Create fully custom habits with your own label and emoji
+- Set a **goal frequency** (e.g., "meditate 5× this week") — the counter auto-checks when you hit your target
+- Edit or delete habits at any time; deleting a checked habit correctly subtracts it from your total
+- Emoji is clickable — cycle through options to personalize each habit
+
+### Milestone Reward Popups
+Completing key milestones triggers a confetti celebration popup with a message:
+
+| Type | Milestones |
+|------|-----------|
+| **Daily** | 5, 10, 15 habits completed |
+| **Weekly** | 1, 3, 5, 10 habits completed |
+
+Popups only fire when you actually earn the milestone — not on login if you already have those habits saved.
+
+### Girl Math
+A rotating motivational message displayed after you complete habits, reframing small actions as meaningful progress. Examples:
+- *"3 habits done = 6 companion growth points. That's basically free serotonin 🧠✨"*
+- *"Consistency today builds strength tomorrow 🌱"*
+- *"If each habit saves you $5 in future therapy, you just saved $15 today 💰"*
+
+### Gentle Reflection
+Click "Get Reflection" for a short, encouraging message. Powered by the **Gemini API** with a trauma-informed prompt — or falls back gracefully to 13+ curated messages with no API key needed. 10-second cooldown prevents spam.
+
+### Mood Tracker
+Log one mood per day (😊 happy, 😐 okay, 😢 sad, 😠 mad). Saved to your profile alongside habit data.
+
+### Two Themes
+Toggle between **🌻 Warm** (sage greens, cream) and **🌷 Pastel** (soft pinks, blush) — both WCAG-accessible.
+
+---
+
+## Tech Stack
+
+| Layer | Technology |
+|-------|-----------|
+| Frontend | React 18, Vite, Tailwind CSS |
+| Backend | Node.js, Express |
+| Database | Firebase Firestore |
+| Auth | Firebase Authentication (email/password) |
+| AI | Google Gemini API (optional — app fully works without it) |
+| Deploy | Vercel |
+
+---
+
+## Data Persistence
+
+Every state change (completed habit, companion name, theme, mood) auto-saves to **Firestore** with a 1-second debounce. On login, all progress is restored exactly as left.
+
+**Firestore document structure per user:**
+```
+/users/{uid}
+  ├── companionType: 'plant' | 'animal'
+  ├── companionName: string
+  ├── habits: { daily, weekly, monthly } → { completed[], custom[], counts{} }
+  ├── totalPoints: number
+  ├── theme: 'warm' | 'pastel'
+  ├── moodEntries: [{ date, mood }]
+  └── timestamps
+```
+
+---
+
+## Trauma-Informed Design Principles
+
+1. **No streaks or punishment** — missing days has zero negative consequences
+2. **No body or calorie tracking** — avoids triggering disordered eating
+3. **Gentle language** — "Daily Goals" not "Tasks"; no shame framing
+4. **Normalized inconsistency** — reflections validate off-days
+5. **User autonomy** — fully custom habits, no prescriptive wellness
+6. **Non-judgmental feedback** — nothing criticizes or compares
+7. **Minority-safe** — abstract companion art (plants/animals), no cultural assumptions, no classist framing
+8. **Post-adult growth** — reinforces self-care is a lifelong journey
+
+---
+
+## Project Structure
+
+```
+src/
+├── components/
+│   ├── Login.jsx           # Firebase email/password auth
+│   ├── CompanionChoice.jsx # Onboarding: choose plant or animal
+│   ├── Companion.jsx       # SVG companion with growth, naming, particles
+│   ├── Habits.jsx          # Habit list with counters, edit, delete
+│   ├── GirlMath.jsx        # Motivational girl math message card
+│   ├── Reflection.jsx      # AI gentle reflection with fallbacks
+│   ├── MoodTracker.jsx     # Daily mood emoji logger
+│   └── RewardPopup.jsx     # Confetti milestone celebration popup
+├── utils/
+│   ├── helpers.js          # Girl math, milestone rewards, stage logic
+│   └── database.js         # Firestore save/load functions
+├── App.jsx                 # Main state, auth, milestone detection
+└── index.css               # Tailwind + custom animations
+server/
+└── index.js                # Express + Gemini API endpoint
+```
+
+---
+
+## Quick Start
 
 ```bash
-# 1. Clone and install
-git clone <your-repo>
-cd habitbloom
+git clone <repo-url>
+cd InnovateHer2026
 npm install
 
-# 2. Set up environment
+# Optional: add Gemini API key for AI reflections
 cp .env.example .env
-# Edit .env and add your Gemini API key (optional — fallbacks work without it)
+# Edit .env → GEMINI_API_KEY=your_key_here
 
-# 3. Run both frontend + backend
 npm run dev
 ```
 
-- **Frontend**: http://localhost:5173
-- **Backend API**: http://localhost:3001
+- Frontend: http://localhost:5173
+- API: http://localhost:3001
 
 ---
 
-## 🏗️ Project Structure
+## Demo Flow (under 3 minutes)
 
-```
-habitbloom/
-├── src/
-│   ├── components/
-│   │   ├── Login.jsx          # Mock email login
-│   │   ├── CompanionChoice.jsx # Plant or animal selection
-│   │   ├── Companion.jsx      # SVG companion with growth animations
-│   │   ├── Habits.jsx         # Daily self-care checklist
-│   │   ├── Goals.jsx          # Personal goal creation & tracking
-│   │   ├── GirlMath.jsx       # Gamified progress messages
-│   │   └── Reflection.jsx     # AI-powered gentle reflections
-│   ├── utils/
-│   │   └── helpers.js         # State management, girl math, defaults
-│   ├── App.jsx                # Main app orchestrator
-│   ├── main.jsx               # Entry point
-│   └── index.css              # Tailwind + custom styles + animations
-├── server/
-│   └── index.js               # Express API with Gemini integration
-├── public/
-│   └── favicon.svg
-├── package.json
-├── vite.config.js
-├── tailwind.config.js
-├── vercel.json                # Ready for Vercel deployment
-└── .env.example
-```
-
-**Team division**: Each component file is independent — assign Login+CompanionChoice to person A, Habits+Goals+GirlMath to person B, and Companion+Reflection+Backend to person C.
+1. **Sign up** with any email → choose plant or animal companion
+2. **Name your companion** by clicking the name placeholder
+3. **Check off habits** → watch companion grow and girl math appear
+4. **Hit 5 daily habits** → confetti reward popup fires
+5. **Get a Reflection** → gentle AI message appears
+6. **Log your mood** → emoji mood tracker
+7. **Toggle theme** → warm ↔ pastel
+8. **Add a custom habit** with a goal frequency counter
 
 ---
 
-## 🌿 How the Companion Grows
-
-Your companion evolves through four visual stages based on **growth points** earned from completing habits and goals:
-
-| Stage | Points | Plant Visual | Animal Visual |
-|-------|--------|-------------|---------------|
-| **Baby** | 0–9 | Small sprout | Tiny kitten |
-| **Teen** | 10–24 | Small leaves | Growing cat |
-| **Young** | 25–49 | Foliage + bud | Happy cat with tail |
-| **Adult** | 50+ | Full bloom with flower | Full cat with whiskers |
-
-### Post-Adult Growth (Continuous Rewards)
-Once your companion reaches adulthood, growth **doesn't stop**. Every 5–8 additional points earned triggers:
-
-- **Plants**: Extra flowers bloom, sparkle effects appear
-- **Animals**: Accessories appear (flower crown, bow tie, sparkles, stars)
-- **Both**: Particle effects (✨🌸💖) animate on screen
-- **Reflections**: AI messages acknowledge the ongoing journey
-
-This design ensures users stay engaged long after "completing" growth.
-
----
-
-## 💅 Girl Math Gamification
-
-Girl Math reframes small daily actions as meaningful progress toward goals:
-
-- **Time math**: "You invested 30 minutes in yourself — that's 0.5 hours of pure self-care! 💅"
-- **Goal math**: "Completing 3 habits today gets you 15% closer to 'Save $50' ✨"
-- **Fun math**: "If each habit saves $5 in future therapy, you just saved $25 today 💰"
-
-Users assign **unit values** to goals (e.g., each habit = $5 toward a $50 goal), making progress feel tangible and fun.
-
----
-
-## 🪷 AI Reflections
-
-### How It Works
-1. User clicks "Get Reflection"
-2. Frontend sends current state to `/api/reflect`
-3. Backend builds a trauma-informed prompt and calls **Gemini API**
-4. Returns a 2-3 sentence gentle, encouraging message
-5. If Gemini fails, curated fallback messages are used
-
-### Prompt Design Principles
-- Warm, kind, non-judgmental tone
-- Normalizes inconsistency ("off days are valid")
-- No medical advice, no streaks, no guilt
-- Avoids parasocial phrases ("I'm proud of you")
-- Adapts based on companion stage (post-adult messages emphasize ongoing care)
-
-### Sample Prompt Template
-```
-You are a warm, gentle, trauma-informed wellness companion.
-The user has a [plant/animal] companion at the "[stage]" stage.
-Today they completed [N] self-care habit(s).
-Write a SHORT reflection (2-3 sentences max) that is warm,
-kind, and non-judgmental...
-```
-
-### Fallback Messages (No API Key Needed)
-The app includes 13+ curated fallback messages that work without any API key, including post-adult specific messages.
-
----
-
-## 🎨 Themes
-
-Toggle between two calming color themes:
-
-- **🌻 Warm**: Sage greens, soft ambers, cream backgrounds
-- **🌷 Pastel**: Soft pinks, rose accents, blush backgrounds
-
-Both themes maintain WCAG-accessible contrast ratios.
-
----
-
-## 💚 Trauma-Informed Design Principles
-
-HabitBloom is built on trauma-informed care principles:
-
-1. **No streaks or punishments** — Missing a day has zero negative consequences
-2. **No calorie/weight tracking** — Avoids triggering disordered eating
-3. **Gentle language** — "Today's Care" not "Daily Tasks"; "No pressure" messaging
-4. **Normalized inconsistency** — AI reflections validate off-days
-5. **User autonomy** — Custom habits and goals, no prescriptive wellness
-6. **Privacy-first** — All data stored in localStorage, never transmitted
-7. **Non-judgmental feedback** — Reflections never criticize or compare
-8. **Inclusive design** — No gendered assumptions, culturally neutral imagery
-9. **Accessible** — Semantic HTML, readable fonts, sufficient contrast
-10. **Post-adult growth** — Reinforces that self-care is lifelong, not a destination
-
-### Minority-Safe Design
-- No cultural assumptions in habits or goals
-- Companion art is abstract (plants/animals, not human representations)
-- Girl Math is opt-in and playful, not prescriptive
-- Language avoids ableist, classist, or body-focused framing
-- Economic examples are adjustable (users set their own goal values)
-
----
-
-## 🚢 Deploy to Vercel
-
-```bash
-# Install Vercel CLI
-npm i -g vercel
-
-# Deploy
-vercel
-
-# Set environment variable
-vercel env add GEMINI_API_KEY
-```
-
-The included `vercel.json` handles routing the API and static files.
-
----
-
-## 🔧 Environment Variables
-
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `GEMINI_API_KEY` | No | Google Gemini API key. App works with fallback messages without it. |
-| `PORT` | No | Backend port (default: 3001) |
-
----
-
-## 📱 Demo Script (< 3 minutes)
-
-1. **Login** → Enter any email (30s)
-2. **Choose companion** → Pick plant or animal (15s)
-3. **Check habits** → Complete 3-4 habits, watch companion grow (30s)
-4. **Add a goal** → "Save $50" with unit value 5 (20s)
-5. **Show Girl Math** → Point out the fun progress messages (15s)
-6. **Get Reflection** → Show the AI-generated kind message (15s)
-7. **Toggle theme** → Switch between warm and pastel (5s)
-8. **Explain post-adult** → "Growth continues forever — just like real wellness" (10s)
-
----
-
-## 📄 License
-
-MIT — Built with 💚 for hackathons.
+MIT License · Built with care for InnovateHer 2026 💚
