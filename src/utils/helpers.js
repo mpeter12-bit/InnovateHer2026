@@ -76,7 +76,7 @@ export const WEEKLY_MILESTONES = {
 // Daily milestones: triggered by habits.daily.completed count
 export const DAILY_MILESTONES = {
   5:  { emoji: '👏', message: "Way to go! Pat yourself on the back!" },
-  10: { emoji: '💃', message: "5 goals, wow! Dance it out!" },
+  10: { emoji: '💃', message: "10 goals, wow! Dance it out!" },
   15: { emoji: '🎨', message: "Congrats! Set aside 15 minutes for your favorite hobby!" },
 };
 
