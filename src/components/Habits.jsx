@@ -57,10 +57,7 @@ export default function Habits({ completedHabits, onToggle, customHabits, onAddC
       [habitId]: newEmoji,
     }));
 
-    // If it's a custom habit, update via parent
-    if (onUpdateHabitEmoji) {
-      onUpdateHabitEmoji(habitId, newEmoji);
-    }
+    
   };
 
   const isCustomHabit = (habitId) => habitId.startsWith('custom_');
