@@ -356,7 +356,7 @@ export default function Companion({ type, totalPoints, companionName, onRename }
         ) : (
           <button
             onClick={() => { setNameInput(companionName || ''); setEditingName(true); }}
-            className="text-sm mb-1 transition-all hover:opacity-70"
+            className="font-display text-lg font-medium mb-1 transition-all hover:opacity-70"
             style={{ color: companionName ? 'var(--text-primary)' : 'var(--text-muted)' }}
             title="Click to name your companion"
           >
@@ -364,7 +364,7 @@ export default function Companion({ type, totalPoints, companionName, onRename }
           </button>
         )}
 
-        <h3 className="font-display text-lg font-medium" style={{ color: 'var(--text-primary)' }}>
+        <h3 className="text-sm" style={{ color: 'var(--text-primary)' }}>
           {type === 'plant' ? '🌿' : '🐾'} {stageLabel}
         </h3>
         <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>
