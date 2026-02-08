@@ -308,16 +308,20 @@ const [totalPoints, setTotalPoints] = useState(0);
     }));
   };
 
-  // Delete custom habit — also removes from completed so the count stays accurate
+  // Delete custom habit — also removes from completed and counts so no orphaned IDs remain
   const deleteCustomHabit = (category, habitId) => {
-    setHabits(prev => ({
-      ...prev,
-      [category]: {
-        ...prev[category],
-        custom: prev[category].custom.filter(h => h.id !== habitId),
-        completed: prev[category].completed.filter(id => id !== habitId),
-      }
-    }));
+    setHabits(prev => {
+      const { [habitId]: _removed, ...remainingCounts } = prev[category].counts || {};
+      return {
+        ...prev,
+        [category]: {
+          ...prev[category],
+          custom: prev[category].custom.filter(h => h.id !== habitId),
+          completed: prev[category].completed.filter(id => id !== habitId),
+          counts: remainingCounts,
+        }
+      };
+    });
   };
 
   /* const addGoal = (goal) => {
