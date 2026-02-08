@@ -80,7 +80,8 @@ const [totalPoints, setTotalPoints] = useState(0);
               ...loadedHabits.daily,
               completed: [],
               counts: {}
-            };
+                  setCompanionName(data.companionName || '');
+                  const loadedHabits = data.habits || {
           }
 
           setHabits(loadedHabits);
