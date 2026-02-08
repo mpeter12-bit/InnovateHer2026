@@ -52,6 +52,9 @@ Click "Get Reflection" for a short, encouraging message. Powered by the **Gemini
 ### Mood Tracker
 Log one mood per day (😊 happy, 😐 okay, 😢 sad, 😠 mad). Saved to your profile alongside habit data. Mood resets at **midnight local time** each day so every morning is a fresh start.
 
+### Mood Calendar
+A color-coded monthly calendar shows every day you logged a mood — yellow for happy, green for okay, blue for sad, pink for mad. Navigate forward and backward through months to reflect on emotional patterns over time.
+
 ### Two Themes
 Toggle between **🌻 Warm** (sage greens, cream) and **🌷 Pastel** (soft pinks, blush) — both WCAG-accessible.
 
@@ -113,6 +116,7 @@ src/
 │   ├── GirlMath.jsx        # Motivational girl math message card
 │   ├── Reflection.jsx      # AI gentle reflection with fallbacks
 │   ├── MoodTracker.jsx     # Daily mood emoji logger
+│   ├── MoodCalendar.jsx    # Color-coded monthly mood history
 │   └── RewardPopup.jsx     # Confetti milestone celebration popup
 ├── utils/
 │   ├── helpers.js          # Girl math, milestone rewards, stage logic
