@@ -218,16 +218,17 @@ export default function Habits({ completedHabits, onToggle, customHabits, onAddC
                 opacity: isChecked ? 0.75 : 1,
               }}
             >
-              <div className="flex">
+              <div className="flex" style={{ cursor: 'default' }}>
                 <input
                   type="checkbox"
                   checked={isChecked}
-                  onChange={() => onToggle(habit.id)}
-                  className="rounded cursor-pointer"
+                  disabled
+                  className="rounded opacity-60"
+                  style={{ cursor: 'default' }}
                 />
               </div>
               <div className="flex flex-col justify-between w-[100%] gap-2 sm:flex-row">
-                <div>
+                <div className="flex justify-center items-center gap-1">
 
 
                 {/* Clickable emoji */}
