@@ -496,8 +496,7 @@ const [totalPoints, setTotalPoints] = useState(0);
           {/* Right Column - Scrollable */}
           <div className="flex-1 space-y-5">
 
-          {/* Mood Calendar */}
-          <MoodCalendar moodEntries={moodEntries} />
+          
 
           {/* Daily Goals */}
           <Habits
@@ -543,6 +542,9 @@ const [totalPoints, setTotalPoints] = useState(0);
 
         {/* Girl Math */}
           <GirlMath completedHabits={allCompletedHabits} />
+
+          {/* Mood Calendar */}
+          <MoodCalendar moodEntries={moodEntries} />
 
           {/* Reflection */}
           <Reflection
