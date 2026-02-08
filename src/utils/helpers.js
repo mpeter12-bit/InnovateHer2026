@@ -82,6 +82,8 @@ export const DAILY_MILESTONES = {
 
 // Monthly milestones: triggered by habits.monthly.completed count
 export const MONTHLY_MILESTONES = {
+  1:  { emoji: '🍫', message: "You crushed your first monthly goal! Treat yourself to something small and sweet!" },
+  3:  { emoji: '🎉', message: "You did it! Celebrate with your favorite activity!" },
   10: { emoji: '🏆', message: "Good girlllll daddy says thank you" },
   15: { emoji: '🌟', message: "Roll a fat blunt and light that sh*t upppp" },
   20: { emoji: '🎉', message: "GET CROSSEDDDDD" },
