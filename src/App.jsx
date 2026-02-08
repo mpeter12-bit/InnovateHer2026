@@ -258,13 +258,14 @@ const [totalPoints, setTotalPoints] = useState(0);
     }));
   };
 
-  // Delete custom habit
+  // Delete custom habit — also removes from completed so the count stays accurate
   const deleteCustomHabit = (category, habitId) => {
     setHabits(prev => ({
       ...prev,
       [category]: {
         ...prev[category],
-        custom: prev[category].custom.filter(h => h.id !== habitId)
+        custom: prev[category].custom.filter(h => h.id !== habitId),
+        completed: prev[category].completed.filter(id => id !== habitId),
       }
     }));
   };
