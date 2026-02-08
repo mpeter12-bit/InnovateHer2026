@@ -10,7 +10,7 @@ import Habits from './components/Habits.jsx';
 import GirlMath from './components/GirlMath.jsx';
 import Reflection from './components/Reflection.jsx';
 import RewardPopup from './components/RewardPopup.jsx';
-import { DEFAULT_HABITS, getWeeklyMilestoneReward, getDailyMilestoneReward } from './utils/helpers.js';
+import { DEFAULT_HABITS, getWeeklyMilestoneReward, getDailyMilestoneReward, getMonthlyMilestoneReward } from './utils/helpers.js';
 
 export default function App() {
   // ── Auth ──
@@ -53,6 +53,7 @@ const [totalPoints, setTotalPoints] = useState(0);
   const [rewardPopup, setRewardPopup] = useState(null);
   const prevDailyCountRef = useRef(0);
   const prevWeeklyCountRef = useRef(0);
+  const prevMonthlyCountRef = useRef(0);
 
   // ── Listen for auth state changes (persists across refreshes) ──
   useEffect(() => {
@@ -65,6 +66,7 @@ const [totalPoints, setTotalPoints] = useState(0);
         const data = await loadUserData(user.uid);
         if (data) {
           setCompanionType(data.companionType || null);
+          setCompanionName(data.companionName || '');
           const loadedHabits = data.habits || {
             daily: { completed: [], custom: [], counts: {} },
             weekly: { completed: [], custom: [], counts: {} },
@@ -375,6 +377,7 @@ const [totalPoints, setTotalPoints] = useState(0);
     if (!dataLoading) {
       prevDailyCountRef.current = habits.daily.completed.length;
       prevWeeklyCountRef.current = habits.weekly.completed.length;
+      prevMonthlyCountRef.current = habits.monthly.completed.length;
     }
   }, [dataLoading]);
 
@@ -396,6 +399,15 @@ const [totalPoints, setTotalPoints] = useState(0);
       prevWeeklyCountRef.current = weeklyCount;
     }
   }, [habits.weekly.completed.length]);
+
+  useEffect(() => {
+    const monthlyCount = habits.monthly.completed.length;
+    if (monthlyCount !== prevMonthlyCountRef.current) {
+      const reward = getMonthlyMilestoneReward(monthlyCount);
+      if (reward) setRewardPopup(reward);
+      prevMonthlyCountRef.current = monthlyCount;
+    }
+  }, [habits.monthly.completed.length]);
 
   // ── Milestone reward popup ──
   const closeRewardPopup = useCallback(() => setRewardPopup(null), []);
