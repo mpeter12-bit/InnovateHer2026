@@ -507,6 +507,7 @@ const [totalPoints, setTotalPoints] = useState(0);
             habitCounts={habits.daily.counts}
             setHabitCounts={setDailyCounts}
             title="Daily Goals"
+            titledesc="Bloom daily — small self-care rituals for a flourishing you."
           />
 
           {/* Weekly Goals */}
