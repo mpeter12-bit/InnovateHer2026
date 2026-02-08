@@ -155,7 +155,7 @@ export default function MoodCalendar({ moodEntries = [] }) {
             >
               <span>{day}</span>
               {mood && (
-                <span className="text-[8px] mt-0.5" style={{ opacity: 0.9 }}>
+                <span className="text-[16px] mt-0.5" style={{ opacity: 0.9 }}>
                   {mood === 'happy' && '😊'}
                   {mood === 'mid' && '😐'}
                   {mood === 'sad' && '😢'}
