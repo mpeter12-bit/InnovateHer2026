@@ -100,6 +100,7 @@ const [totalPoints, setTotalPoints] = useState(0);
         setFirebaseUser(null);
         // Reset state
         setCompanionType(null);
+        setCompanionName('');
         setHabits({
           daily: { completed: [], custom: [], counts: {} },
           weekly: { completed: [], custom: [], counts: {} },
