@@ -69,7 +69,7 @@ Toggle between **🌻 Warm** (sage greens, cream) and **🌷 Pastel** (soft pink
 | Database | Firebase Firestore |
 | Auth | Firebase Authentication (email/password) |
 | AI | Google Gemini API (optional — app fully works without it) |
-| Deploy | Vercel |
+| Deploy-ready | Vercel |
 
 ---
 
