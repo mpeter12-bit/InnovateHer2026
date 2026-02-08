@@ -49,7 +49,7 @@ A rotating motivational message displayed after you complete habits, reframing s
 Click "Get Reflection" for a short, encouraging message. Powered by the **Gemini API** with a trauma-informed prompt — or falls back gracefully to 13+ curated messages with no API key needed. 10-second cooldown prevents spam.
 
 ### Mood Tracker
-Log one mood per day (😊 happy, 😐 okay, 😢 sad, 😠 mad). Saved to your profile alongside habit data.
+Log one mood per day (😊 happy, 😐 okay, 😢 sad, 😠 mad). Saved to your profile alongside habit data. Mood resets at **midnight local time** each day so every morning is a fresh start.
 
 ### Two Themes
 Toggle between **🌻 Warm** (sage greens, cream) and **🌷 Pastel** (soft pinks, blush) — both WCAG-accessible.

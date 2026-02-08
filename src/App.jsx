@@ -48,6 +48,7 @@ const [totalPoints, setTotalPoints] = useState(0);
     const d = new Date();
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
   };
+
   const [lastDailyReset, setLastDailyReset] = useState(getLocalDate());
   const [moodEntries, setMoodEntries] = useState([]);
   const [rewardPopup, setRewardPopup] = useState(null);
@@ -334,7 +335,7 @@ const [totalPoints, setTotalPoints] = useState(0);
   }; */
 
   const handleMoodSelect = (moodId) => {
-    const today = new Date().toISOString().split('T')[0]; // Format: YYYY-MM-DD
+    const today = getLocalDate();
 
     setMoodEntries((prev) => {
       // Check if there's already an entry for today
@@ -360,7 +361,7 @@ const [totalPoints, setTotalPoints] = useState(0);
   const companionStage = totalPoints >= 50 ? 'adult' : totalPoints >= 25 ? 'young' : totalPoints >= 10 ? 'teen' : 'baby';
 
   // ── Get today's mood ──
-  const today = new Date().toISOString().split('T')[0];
+  const today = getLocalDate();
   const todayMoodEntry = moodEntries.find(entry => entry.date === today);
   const todayMood = todayMoodEntry ? todayMoodEntry.mood : null;
   
