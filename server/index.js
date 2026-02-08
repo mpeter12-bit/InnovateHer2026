@@ -68,7 +68,7 @@ async function callGemini(prompt, retries = 1) {
             contents: [{ parts: [{ text: prompt }] }],
             generationConfig: {
               temperature: 0.8,
-              maxOutputTokens: 200,
+              maxOutputTokens: 300,
             },
           }),
         }
@@ -122,7 +122,7 @@ Goals completed so far: ${goalsDone > 0 ? goalsCompleted.join(', ') : 'none yet'
 
 ${companionStage === 'adult' ? `Their companion is fully grown. Acknowledge this milestone while emphasizing that growth and self-care are ongoing, lifelong journeys. Mention that their companion continues to thrive because of their care.` : `Their companion is still growing. Gently encourage them without pressure.`}
 
-Write one SHORT full sentence (12 words max) that is:
+Write one SHORT full sentence (10 words max) that is:
 - Warm, kind, and non-judgmental
 - Normalizes inconsistency (it's okay to have off days)
 - Does NOT include medical advice, streak counts, or guilt
